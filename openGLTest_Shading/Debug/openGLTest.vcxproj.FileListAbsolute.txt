@@ -1,0 +1,4 @@
+C:\Users\CHOI\Desktop\Git\Etc\openGLTest\Debug\openGLTest.exe
+C:\Users\CHOI\Desktop\Git\Etc\openGLTest\Debug\openGLTest.pdb
+C:\Users\최남일\Desktop\Git\Etc\openGLTest\Debug\openGLTest.exe
+C:\Users\최남일\Desktop\Git\Etc\openGLTest\Debug\openGLTest.pdb
