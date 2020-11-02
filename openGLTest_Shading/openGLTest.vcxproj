@@ -72,15 +72,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\..\Compile\Debug</OutDir>
+    <IntDir>..\..\..\Compile\Debug</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\..\Compile\Debug</OutDir>
+    <IntDir>..\..\..\Compile\Debug</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\..\..\Compile\Debug</OutDir>
+    <IntDir>..\..\..\Compile\Debug</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\..\Compile\Debug</OutDir>
+    <IntDir>..\..\..\Compile\Debug</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -148,12 +156,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="setupBuffer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MyGlWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Loader.h" />
     <ClInclude Include="MyGlWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sampler.frag" />
+    <None Include="sampler.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
