@@ -24,12 +24,18 @@
     <ClCompile Include="Main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Downloads\Viewer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyGlWindow.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="..\openGLTest\Loader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Downloads\Viewer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -151,10 +151,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Downloads\Viewer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MyGlWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Downloads\Viewer.h" />
     <ClInclude Include="..\openGLTest\Loader.h" />
     <ClInclude Include="MyGlWindow.h" />
   </ItemGroup>

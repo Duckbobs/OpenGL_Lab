@@ -10,6 +10,7 @@ MyGlWindow* win;
 
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void window_resize(GLFWwindow* window, int width, int height);
+static void window_size_callback(GLFWwindow* window, int width, int height);
 
 int main() {
 	// @------------------------------------------------------------------------------@
@@ -53,6 +54,7 @@ int main() {
 	// @------------------------------------------------------------------------------@
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetWindowSizeCallback(window, window_resize);
+	glfwSetWindowSizeCallback(window, window_size_callback);
 
 
 
@@ -78,11 +80,13 @@ int main() {
 	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 	win = new MyGlWindow(width, height);
 
-	glm::vec3 camPos = glm::vec3(5, 5, 5);
-	glm::vec3 Look = glm::vec3(0, 0, 0);
-	glm::vec3 Up = glm::vec3(0, 1, 0);
+	//glm::vec3 camPos = glm::vec3(5, 5, 5);
+	//glm::vec3 Look = glm::vec3(0, 0, 0);
+	//glm::vec3 Up = glm::vec3(0, 1, 0);
 
-	win->lookAt(camPos, Look, Up);
+	//win->lookAt(camPos, Look, Up);
+
+	//win->perspective(glm::radians(45.0f), 780.0f/750.0f, 0.1f, 500.0f);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -115,4 +119,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 static void window_resize(GLFWwindow* window, int width, int height) {
 	win->resize(width, height);
+}
+
+static void window_size_callback(GLFWwindow* window, int width, int height) {
+	win->setSize(width, height);
 }

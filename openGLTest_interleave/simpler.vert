@@ -6,7 +6,7 @@ layout(location = 0) in vec4 vertexPosition; // id 0
 layout(location = 1) in vec3 vertexColor; // id 1
 //cpp 에 있는 id와 값이 매치돼야한다.
 
-uniform mat4 model; // 유니폼 app에서 전송 받은 것..
+//uniform mat4 model; // 유니폼 app에서 전송 받은 것..
 // 유니폼은 오직 read만 가능
 
 
@@ -25,7 +25,7 @@ void main()
 	// vertexPosition : local, model, object 좌표값
 	// gl_Position = NDC, Clipped 좌표값,
 	// 여기에 값을 설정하는 순간 perspective division 실행...
-	gl_Position = model * vertexPosition;
-
+	//gl_Position = model * vertexPosition;
+	gl_Position = vertexPosition;
 
 }
