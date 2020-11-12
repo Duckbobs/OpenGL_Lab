@@ -24,7 +24,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Downloads\Viewer.cpp">
+    <ClCompile Include="Viewer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClInclude Include="..\openGLTest\Loader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Downloads\Viewer.h">
+    <ClInclude Include="Viewer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

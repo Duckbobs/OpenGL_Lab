@@ -11,6 +11,7 @@ private:
 	GLuint ibo_cube_elements;
 	void setup();
 public:
+	ColorCube();
 	void draw();
 };
 class MyGlWindow {
