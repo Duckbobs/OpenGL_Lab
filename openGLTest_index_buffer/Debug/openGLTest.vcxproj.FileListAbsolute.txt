@@ -1,0 +1,2 @@
+C:\Users\최남일\Desktop\Git\Etc\openGLTest_index_buffer\Debug\openGLTest.exe
+C:\Users\최남일\Desktop\Git\Etc\openGLTest_index_buffer\Debug\openGLTest.pdb

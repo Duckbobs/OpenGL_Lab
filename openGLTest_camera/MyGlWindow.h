@@ -1,19 +1,7 @@
 #include "Loader.h"
-#include <glm/glm.hpp>
 #include "Viewer.h"
+#include "ColorCube.h"
 
-class ColorCube
-{
-private:
-	GLuint vaoHandle;
-	GLuint vboVertex;
-	GLuint vbo_cube_vertices, vbo_cube_colors;
-	GLuint ibo_cube_elements;
-	void setup();
-public:
-	ColorCube();
-	void draw();
-};
 class MyGlWindow {
 public:
 	MyGlWindow(int w, int h);
@@ -23,11 +11,11 @@ public:
 	glm::mat4 lookAt(glm::vec3 campos, glm::vec3 look, glm::vec3 up);
 	glm::mat4 perspective(float fovy, float aspect, float near, float far);
 
-	ColorCube* m_cube;
 	void setAspect(float r) { m_viewer->setAspectRatio(r); }
 	void initialize();
 
 	Viewer* m_viewer;
+	ColorCube* m_cube;
 private:
 	ShaderProgram* shaderProgram;
 	int width;

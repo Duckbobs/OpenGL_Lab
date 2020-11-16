@@ -27,6 +27,9 @@
     <ClCompile Include="Viewer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="ColorCube.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyGlWindow.h">
@@ -36,6 +39,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Viewer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorCube.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

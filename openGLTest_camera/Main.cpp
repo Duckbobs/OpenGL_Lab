@@ -8,9 +8,18 @@
 GLFWwindow* window;
 MyGlWindow* win;
 
+bool lbutton_down;
+bool rbutton_down;
+bool mbutton_down;
+double m_lastMouseX;
+double m_lastMouseY;
+double cx, cy;
 static void key_callback(GLFWwindow*, int, int, int, int);
 static void window_resize(GLFWwindow* window, int width, int height);
 static void window_size_callback(GLFWwindow* window, int width, int height);
+static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void mouseDragging(double width, double height);
 
 int main() {
 	// @------------------------------------------------------------------------------@
@@ -56,6 +65,9 @@ int main() {
 	glfwSetWindowSizeCallback(window, window_resize);
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetCursorPosCallback(window, cursor_pos_callback);
+
 
 
 	// @------------------------------------------------------------------------------@
@@ -95,6 +107,8 @@ int main() {
 		glfwSwapBuffers(window); // Swap front and back buffers
 
 		glfwPollEvents(); // Poll forand process events
+		
+		mouseDragging(width, height);
 	}
 
 	// @------------------------------------------------------------------------------@
@@ -123,4 +137,65 @@ static void window_resize(GLFWwindow* window, int width, int height) {
 
 static void window_size_callback(GLFWwindow* window, int width, int height) {
 	win->setSize(width, height);
+	win->setAspect(width / (float)height);
+}
+static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	cx = xpos;
+	cy = ypos;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (action == GLFW_PRESS) {
+		std::cout << "GLFW_PRESS" << std::endl;
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		m_lastMouseX = xpos;
+		m_lastMouseY = ypos;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		std::cout << "GLFW_MOUSE_BUTTON_LEFT" << std::endl;
+		if (GLFW_PRESS == action)
+			lbutton_down = true;
+		else if (GLFW_RELEASE == action)
+			lbutton_down = false;
+	}
+
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		std::cout << "GLFW_MOUSE_BUTTON_RIGHT" << std::endl;
+		if (GLFW_PRESS == action)
+			rbutton_down = true;
+		else if (GLFW_RELEASE == action)
+			rbutton_down = false;
+	}
+
+	else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		std::cout << "GLFW_MOUSE_BUTTON_MIDDLE" << std::endl;
+		if (GLFW_PRESS == action)
+			mbutton_down = true;
+		else if (GLFW_RELEASE == action)
+			mbutton_down = false;
+	}
+}
+void mouseDragging(double width, double height)
+{
+	if (lbutton_down) {
+		float fractionChangeX = static_cast<float>(cx - m_lastMouseX) / static_cast<float>(width);
+		float fractionChangeY = static_cast<float>(m_lastMouseY - cy) / static_cast<float>(height);
+		win->m_viewer->rotate(fractionChangeX, fractionChangeY);
+	}
+	else if (mbutton_down) {
+		float fractionChangeX = static_cast<float>(cx - m_lastMouseX) / static_cast<float>(width);
+		float fractionChangeY = static_cast<float>(m_lastMouseY - cy) / static_cast<float>(height);
+		win->m_viewer->zoom(fractionChangeY);
+	}
+	else if (rbutton_down) {
+		float fractionChangeX = static_cast<float>(cx - m_lastMouseX) / static_cast<float>(width);
+		float fractionChangeY = static_cast<float>(m_lastMouseY - cy) / static_cast<float>(height);
+		win->m_viewer->translate(-fractionChangeX, -fractionChangeY, 1);
+	}
+	m_lastMouseX = cx;
+	m_lastMouseY = cy;
 }
