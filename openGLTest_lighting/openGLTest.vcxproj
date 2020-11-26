@@ -18,6 +18,31 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CheckeredFloor.h" />
+    <ClInclude Include="ColorCube.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="LightingCube.h" />
+    <ClInclude Include="Loader.h" />
+    <ClInclude Include="MyGlWindow.h" />
+    <ClInclude Include="Viewer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CheckeredFloor.cpp" />
+    <ClCompile Include="ColorCube.cpp" />
+    <ClCompile Include="global.cpp" />
+    <ClCompile Include="LightingCube.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MyGlWindow.cpp" />
+    <ClCompile Include="setupBuffer.cpp" />
+    <ClCompile Include="Viewer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
+    <None Include="simpler.frag" />
+    <None Include="simpler.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -150,24 +175,6 @@
       <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="CheckeredFloor.cpp" />
-    <ClCompile Include="ColorCube.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MyGlWindow.cpp" />
-    <ClCompile Include="Viewer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\openGLTest\Loader.h" />
-    <ClInclude Include="CheckeredFloor.h" />
-    <ClInclude Include="ColorCube.h" />
-    <ClInclude Include="MyGlWindow.h" />
-    <ClInclude Include="Viewer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="simpler.frag" />
-    <None Include="simpler.vert" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -11,12 +11,17 @@
 void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
-	shaderProgram->initFromFiles("simpler.vert", "simpler.frag"); // ½¦ÀÌ´õ ÁöÁ¤
-	m_cube = new ColorCube();
+	shaderProgram->initFromFiles("lighting.vert", "lighting.frag"); // ½¦ÀÌ´õ ÁöÁ¤
+	m_cube = new LightingCube();
 	m_board = new CheckeredFloor(10, 20);
 }
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
+	shaderProgram->addUniform("lightLocation");
+	shaderProgram->addUniform("Kd");
+	shaderProgram->addUniform("Ld");
+	shaderProgram->addUniform("mview");
+	shaderProgram->addUniform("nmat");
 	shaderProgram->addUniform("mvp");
 }
 MyGlWindow::MyGlWindow(int w, int h)
@@ -53,7 +58,18 @@ void MyGlWindow::draw() {
 	glEnable(GL_DEPTH_TEST);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma endregion
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 projection;
+	glm::mat4 mvp;
+	glm::mat4 mview;
 
+	glm::vec4 lightLocation(50, 50, 50, 1);
+	glm::vec3 Kd(1, 1, 0);
+	glm::vec3 Ld(1, 1, 1);
+	glm::mat4 imvp;
+	glm::mat4 imp;
+	glm::mat3 nmat;
 
 	glm::vec3 eye = m_viewer->getViewPoint();
 	glm::vec3 look = m_viewer->getViewCenter();
@@ -72,6 +88,14 @@ void MyGlWindow::draw() {
 		scale = glm::scale(_mat, glm::vec3(0.2f, 0.2f, 0.2f));
 		model = trans * rot * scale;
 		mvp = projection * view * model;
+		mview = view * model;
+		imvp = glm::inverse(mview); //imp = glm::inverse(model);
+		nmat = glm::mat3(glm::transpose(imvp)); //nmat = glm::mat3(glm::transpose(imp));
+		glUniform4fv(shaderProgram->uniform("lightLocation"), 1, glm::value_ptr(lightLocation));
+		glUniform3fv(shaderProgram->uniform("Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(shaderProgram->uniform("Ld"), 1, glm::value_ptr(Ld));
+		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
+		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 		if (m_cube) {
 			m_cube->draw();
@@ -82,9 +106,14 @@ void MyGlWindow::draw() {
 		scale = glm::scale(_mat, _vec);
 		model = trans * rot * scale;
 		mvp = projection * view * model;
+		glUniform4fv(shaderProgram->uniform("lightLocation"), 1, glm::value_ptr(lightLocation));
+		glUniform3fv(shaderProgram->uniform("Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(shaderProgram->uniform("Ld"), 1, glm::value_ptr(Ld));
+		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
+		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 		if (m_board) {
-			m_board->draw();
+			//m_board->draw();
 		}
 
 	shaderProgram->disable();

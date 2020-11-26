@@ -1,7 +1,9 @@
 #include "Loader.h"
 #include "Viewer.h"
-#include "ColorCube.h"
+#include "LightingCube.h"
 #include "CheckeredFloor.h"
+
+#include <vector>
 
 class MyGlWindow {
 public:
@@ -16,18 +18,12 @@ public:
 	void initialize();
 
 	Viewer* m_viewer;
-	ColorCube* m_cube;
+	LightingCube* m_cube;
 	CheckeredFloor* m_board;
 private:
 	ShaderProgram* shaderProgram;
-	ShaderProgram* shaderProgram_checkeredFloor;
 	int width;
 	int height;
 
 	void setupBuffer();
-
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
-	glm::mat4 mvp;
 };
