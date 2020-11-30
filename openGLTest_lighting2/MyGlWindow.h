@@ -2,6 +2,8 @@
 #include "Viewer.h"
 #include "LightingCube.h"
 #include "CheckeredFloor.h"
+#include "Sphere.h"
+#include "VBOTeapot.h"
 
 #include <vector>
 
@@ -20,8 +22,11 @@ public:
 	Viewer* m_viewer;
 	LightingCube* m_cube;
 	CheckeredFloor* m_board;
+	Sphere* m_sphere;
+	VBOTeapot* m_teapot;
 private:
 	ShaderProgram* shaderProgram;
+	ShaderProgram* shaderProgram_Floor;
 	int width;
 	int height;
 

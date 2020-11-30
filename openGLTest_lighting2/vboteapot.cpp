@@ -31,6 +31,43 @@ VBOTeapot::VBOTeapot(int grid, mat4 lidTransform)
 
 
 	//create vao, vbos, ibo here
+
+	// 1. vao 생성
+    glGenVertexArrays(1, &vaoHandle); // vao 1 개 생성
+    glBindVertexArray(vaoHandle); // = 이 vao에 뭔가를  할거다..activate..picking..
+    // 2. vbo 생성
+    glGenBuffers(1, &VBO_position); // vbo 1개 생성
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_position); // 이 vbo를 선택한다.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * verts, v, GL_STATIC_DRAW);
+    glVertexAttribPointer(
+        0, // id 번호
+        3, // 각 vertex 당 데이타 수
+        GL_FLOAT, // 데이타 타입
+        GL_FALSE, // 정규화(normalize) 되어있나? GL_FALSE = 안돼있다
+        0, // 각 vertex 당 크기
+        0 //  offset
+    );
+    glEnableVertexAttribArray(0); // id 0을 enable
+    // 2. vbo 생성
+    glGenBuffers(1, &VBO_normal); // vbo 1개 생성
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_normal); // 이 vbo를 선택한다.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * verts, n, GL_STATIC_DRAW);
+    glVertexAttribPointer(
+        1, // id 번호
+        3, // 각 vertex 당 데이타 수
+        GL_FLOAT, // 데이타 타입
+        GL_FALSE, // 정규화(normalize) 되어있나? GL_FALSE = 안돼있다
+        0, // 각 vertex 당 크기
+        0 //  offset
+    );
+    glEnableVertexAttribArray(1); // id 1을 enable
+    // 2. ibo 생성
+    glGenBuffers(1, &IBO); // ibo 1개 생성
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); // 이 vbo를 선택한다.
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6 * faces, el, GL_STATIC_DRAW);
+
+    // 3. vao close
+    glBindVertexArray(0); // 인자를 0 넣으면 VAO close
 	
 
     delete [] v;
@@ -253,5 +290,8 @@ vec3 VBOTeapot::evaluateNormal( int gridU, int gridV, float *B, float *dB, vec3 
 
 void VBOTeapot::draw() const
 {
-	
+    glBindVertexArray(vaoHandle);
+    int size;
+    glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    glDrawElements(GL_TRIANGLES, size / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 }

@@ -16,7 +16,6 @@ void CheckeredFloor::setup(float size, int nSquares) {
 
 	std::vector <glm::vec3> vlists;
 	std::vector <glm::vec3> clists;
-	std::vector <glm::vec3> nlists;
 
 	// parameters:
 	float maxX = size / 2, maxY = size / 2;
@@ -53,31 +52,9 @@ void CheckeredFloor::setup(float size, int nSquares) {
 			vlists.push_back(glm::vec3(xp, -0.001f, yp + yd));
 			vlists.push_back(glm::vec3(xp + xd, -0.001f, yp + yd));
 
-			p1 = glm::vec3(xp, -0.001f, yp);
-			p2 = glm::vec3(xp, -0.001f, yp + yd);
-			p3 = glm::vec3(xp + xd, -0.001f, yp + yd);
-			v1 = p2 - p1;
-			v2 = p3 - p1;
-			n = glm::cross(v1, v2);
-
-			nlists.push_back(n);
-			nlists.push_back(n);
-			nlists.push_back(n);
-
 			vlists.push_back(glm::vec3(xp, -0.001f, yp));
 			vlists.push_back(glm::vec3(xp + xd, -0.001f, yp + yd));
 			vlists.push_back(glm::vec3(xp + xd, -0.001f, yp));
-
-			p1 = glm::vec3(xp, -0.001f, yp);
-			p2 = glm::vec3(xp + xd, -0.001f, yp + yd);
-			p3 = glm::vec3(xp + xd, -0.001f, yp);
-			v1 = p2 - p1;
-			v2 = p3 - p1;
-			n = glm::cross(v1, v2);
-
-			nlists.push_back(n);
-			nlists.push_back(n);
-			nlists.push_back(n);
 		}
 	}
 
@@ -102,7 +79,7 @@ void CheckeredFloor::setup(float size, int nSquares) {
 	// 2. vbo 생성
 	glGenBuffers(1, &vboColor); // vbo 1개 생성
 	glBindBuffer(GL_ARRAY_BUFFER, vboColor); // 이 vbo를 선택한다.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * nlists.size() * 3, nlists.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * clists.size() * 3, clists.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(
 		1, // id 번호
 		3, // 각 vertex 당 데이타 수

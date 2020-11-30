@@ -12,26 +12,38 @@ void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
 	shaderProgram->initFromFiles("lighting.vert", "lighting.frag"); // 쉐이더 지정
+	shaderProgram_Floor = new ShaderProgram();
+	shaderProgram_Floor->initFromFiles("simpler.vert", "simpler.frag"); // 쉐이더 지정
+
 	m_cube = new LightingCube();
 	m_board = new CheckeredFloor(10, 20);
+	m_sphere = new Sphere(1.0, 100, 100);
+	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+	m_teapot = new VBOTeapot(64, m);
 }
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
-	shaderProgram->addUniform("lightLocation");
-	shaderProgram->addUniform("Kd");
-	shaderProgram->addUniform("Ld");
+	shaderProgram->addUniform("Light.Position");
+	shaderProgram->addUniform("Light.La");
+	shaderProgram->addUniform("Light.Ld");
+	shaderProgram->addUniform("Light.Ls");
+
+	shaderProgram->addUniform("Material.Ka");
+	shaderProgram->addUniform("Material.Kd");
+	shaderProgram->addUniform("Material.Ks");
+	shaderProgram->addUniform("Material.Shiness");
+
 	shaderProgram->addUniform("mview");
 	shaderProgram->addUniform("nmat");
 	shaderProgram->addUniform("mvp");
+
+
+	shaderProgram_Floor->addUniform("mvp");
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
 	width = w;
 	height = h;
-	m_cube = 0;
-	m_board = 0;
-
-
 	static float DEFAULT_VIEW_POINT[3] = { 5, 5, 5 };
 	static float DEFAULT_VIEW_CENTER[3] = { 0, 0, 0 };
 	static float DEFAULT_UP_VECTOR[3] = { 0, 1, 0 };
@@ -64,9 +76,6 @@ void MyGlWindow::draw() {
 	glm::mat4 mvp;
 	glm::mat4 mview;
 
-	glm::vec4 lightLocation(50, 50, 50, 1);
-	glm::vec3 Kd(1, 1, 0);
-	glm::vec3 Ld(1, 1, 1);
 	glm::mat4 imvp;
 	glm::mat4 imp;
 	glm::mat3 nmat;
@@ -82,7 +91,23 @@ void MyGlWindow::draw() {
 	projection = glm::perspective(45.0f, 1.0f * width / height, 0.1f, 500.0f);
 	
 	shaderProgram->use(); // shader 호출
-
+		glm::vec4 lightPos(global::lightPos, 1);
+		glm::vec3 Ka(0.1, 0.1, 0.1);
+		glm::vec3 Ka2(1, 1, 12);
+		glm::vec3 Kd(1, 1, 0);
+		glm::vec3 Ks(1, 1, 0);
+		GLfloat shiness = 10;
+		glm::vec3 La(0.1, 0.1, 0.1);
+		glm::vec3 Ld(0.5, 0.5, 0.5);
+		glm::vec3 Ls(0.2, 0.2, 0.2);
+		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPos));
+		glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(La));
+		glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(Ld));
+		glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(Ls));
+		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 		trans = glm::translate(_mat, glm::vec3(0, 0.2f, 0));
 		rot = glm::rotate(_mat, glm::radians(0.0f), _vec);
 		scale = glm::scale(_mat, glm::vec3(0.2f, 0.2f, 0.2f));
@@ -91,32 +116,41 @@ void MyGlWindow::draw() {
 		mview = view * model;
 		imvp = glm::inverse(mview); //imp = glm::inverse(model);
 		nmat = glm::mat3(glm::transpose(imvp)); //nmat = glm::mat3(glm::transpose(imp));
-		glUniform4fv(shaderProgram->uniform("lightLocation"), 1, glm::value_ptr(lightLocation));
-		glUniform3fv(shaderProgram->uniform("Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(shaderProgram->uniform("Ld"), 1, glm::value_ptr(Ld));
 		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
 		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-		if (m_cube) {
-			m_cube->draw();
+		if (m_sphere) {
+			m_sphere->draw();
 		}
 
+		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka2));
+		trans = glm::translate(_mat, glm::vec3(1.0f, 0.0f, 0));
+		rot = glm::rotate(_mat, glm::radians(270.0f), glm::vec3(1.0f, 0, 0));
+		scale = glm::scale(_mat, glm::vec3(0.2f, 0.2f, 0.2f));
+		model = trans * rot * scale;
+		mvp = projection * view * model;
+		mview = view * model;
+		imvp = glm::inverse(mview); //imp = glm::inverse(model);
+		nmat = glm::mat3(glm::transpose(imvp)); //nmat = glm::mat3(glm::transpose(imp));
+		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
+		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
+		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		if (m_teapot) {
+			m_teapot->draw();
+		}
+	shaderProgram->disable();
+
+	shaderProgram_Floor->use(); // shader 호출
 		trans = glm::translate(_mat, glm::vec3(0, 0, 0));
 		rot = glm::rotate(_mat, glm::radians(0.0f), _vec);
 		scale = glm::scale(_mat, _vec);
 		model = trans * rot * scale;
 		mvp = projection * view * model;
-		glUniform4fv(shaderProgram->uniform("lightLocation"), 1, glm::value_ptr(lightLocation));
-		glUniform3fv(shaderProgram->uniform("Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(shaderProgram->uniform("Ld"), 1, glm::value_ptr(Ld));
-		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
-		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix4fv(shaderProgram_Floor->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 		if (m_board) {
-			//m_board->draw();
+			m_board->draw();
 		}
-
-	shaderProgram->disable();
+	shaderProgram_Floor->disable();
 
 }
 void MyGlWindow::resize(int w, int h) {

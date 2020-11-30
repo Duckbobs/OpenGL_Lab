@@ -7,6 +7,12 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <cstddef>
+
+template<typename T, size_t SIZE>
+size_t getSize(T(&)[SIZE]) {
+	return SIZE;
+}
 Sphere::Sphere()
 {
 
@@ -44,17 +50,56 @@ radius(rad), slices(sl), stacks(st)
 
 	//create vao, vbo and ibo here... (We didn't use std::vector here...)
 
+	// 1. vao 생성
+	glGenVertexArrays(1, &VAO); // vao 1 개 생성
+	glBindVertexArray(VAO); // = 이 vao에 뭔가를  할거다..activate..picking..
+	// 2. vbo 생성
+	glGenBuffers(1, &VBO_position); // vbo 1개 생성
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_position); // 이 vbo를 선택한다.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * nVerts, v, GL_STATIC_DRAW);
+	glVertexAttribPointer(
+		0, // id 번호
+		3, // 각 vertex 당 데이타 수
+		GL_FLOAT, // 데이타 타입
+		GL_FALSE, // 정규화(normalize) 되어있나? GL_FALSE = 안돼있다
+		0, // 각 vertex 당 크기
+		0 //  offset
+	);
+	glEnableVertexAttribArray(0); // id 0을 enable
+	// 2. vbo 생성
+	glGenBuffers(1, &VBO_normal); // vbo 1개 생성
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_normal); // 이 vbo를 선택한다.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * nVerts, n, GL_STATIC_DRAW);
+	glVertexAttribPointer(
+		1, // id 번호
+		3, // 각 vertex 당 데이타 수
+		GL_FLOAT, // 데이타 타입
+		GL_FALSE, // 정규화(normalize) 되어있나? GL_FALSE = 안돼있다
+		0, // 각 vertex 당 크기
+		0 //  offset
+	);
+	glEnableVertexAttribArray(1); // id 1을 enable
+	// 2. ibo 생성
+	glGenBuffers(1, &IBO); // ibo 1개 생성
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); // 이 vbo를 선택한다.
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6 * nVerts, el, GL_STATIC_DRAW);
+
+// 3. vao close
+	glBindVertexArray(0); // 인자를 0 넣으면 VAO close
+
 
 	delete[] v;
 	delete[] n;
 	delete[] el;
 	delete[] tex;
-
 }
 
 void Sphere::draw() 
 {
-
+	glBindVertexArray(VAO);
+	int size;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	glDrawElements(GL_TRIANGLES, size / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 }
 
 void Sphere::generateVerts(float * verts, float * norms, float * tex,

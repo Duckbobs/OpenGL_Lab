@@ -17,6 +17,8 @@ using glm::mat4;
 class VBOTeapot
 {
 private:
+    GLuint VBO_position, VBO_normal, IBO;
+
     unsigned int vaoHandle;
     unsigned int faces;
 
