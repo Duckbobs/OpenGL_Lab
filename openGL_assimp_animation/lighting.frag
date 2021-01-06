@@ -40,7 +40,7 @@ void main()
 		fLightIntensity += (diffuse + spec);
 	}
 	fLightIntensity = ambient + fLightIntensity;
-	FragColor = vec4(fLightIntensity, 0.5);
+	FragColor = vec4(fLightIntensity, 1.0);
 }
 
 	//R = normalize(reflect(-L, N));

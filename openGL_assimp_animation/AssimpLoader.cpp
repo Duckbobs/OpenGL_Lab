@@ -1,7 +1,7 @@
 #include "AssimpLoader.h"
 #define STB_IMAGE_IMPLEMENTATION
 
-#include <stb_image.h>
+#include "stb_image.h""
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
 {
@@ -45,9 +45,18 @@ void Mesh::setupMesh()
 
     glBindVertexArray(0);
 }
-void Mesh::Draw(ShaderProgram shader)
+
+void Mesh::Draw()
 {
-    /*
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+}
+
+void Mesh::Draw(ShaderProgram *shader)
+{
+    
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     for (unsigned int i = 0; i < textures.size(); i++)
@@ -61,21 +70,27 @@ void Mesh::Draw(ShaderProgram shader)
         else if (name == "texture_specular")
             number = std::to_string(specularNr++);
 
-        shader.setFloat(("material." + name + number).c_str(), i);
+        shader->setFloat(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);
-    */
+    
     // mesh ±×¸®±â
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
-void Model::Draw(ShaderProgram shader)
+void Model::Draw(ShaderProgram *shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
+}
+
+void Model::Draw()
+{
+    for (unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i].Draw();
 }
 
 void Model::loadModel(std::string path)

@@ -28,7 +28,10 @@ public:
     std::vector<Texture> textures;
     /*  함수         */
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
-    void Draw(ShaderProgram shaderProgram);
+    void Draw(ShaderProgram *shaderProgram);
+    void Draw();
+private:
+
 private:
     /*  렌더 데이터  */
     unsigned int VAO, VBO, EBO;
@@ -44,7 +47,9 @@ public:
     {
         loadModel(path);
     }
-    void Draw(ShaderProgram shader);
+    void Draw(ShaderProgram *shader);
+    void Draw();
+
 private:
     /*  Model 데이터  */
     std::vector<Mesh> meshes;

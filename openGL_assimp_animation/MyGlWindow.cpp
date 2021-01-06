@@ -23,7 +23,7 @@ void MyGlWindow::setupBuffer()
 	//m_torus = new VBOTorus(2, 1, 100, 100);
 
 	char* directory;
-	directory = (char*)"C:\\Users\\CHOI\\Desktop\\fbx\\scene.fbx";
+	directory = (char*)"C:\\fbx\\indoor plant_02_+2.fbx";
 	m_model = new Model(directory);
 }
 void MyGlWindow::initialize() {
@@ -149,7 +149,7 @@ void MyGlWindow::draw() {
 		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 
 		trans = glm::translate(_mat, glm::vec3(1.0f, 0.15f, 0));
-		rot = glm::rotate(_mat, glm::radians(0.0f), glm::vec3(1.0f, 0, 0));
+		rot = glm::rotate(_mat, glm::radians(270.0f), glm::vec3(1.0f, 0, 0));
 		scale = glm::scale(_mat, glm::vec3(1.0f, 1.0f, 1.0f));
 		model = trans * rot * scale;
 		mvp = projection * view * model;
@@ -160,7 +160,11 @@ void MyGlWindow::draw() {
 		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 		if (m_model) {
-			m_model->Draw(*shaderProgram);
+			m_model->Draw(shaderProgram);
+		//	m_model->Draw();
+		//	m_board->draw();
+
+
 		}
 
 	shaderProgram->disable();
