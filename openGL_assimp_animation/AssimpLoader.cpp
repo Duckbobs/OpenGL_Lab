@@ -11,7 +11,6 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 
     setupMesh();
 }
-
 void Mesh::setupMesh()
 {
     Vertex vertex;
@@ -45,7 +44,6 @@ void Mesh::setupMesh()
 
     glBindVertexArray(0);
 }
-
 void Mesh::Draw()
 {
     glBindVertexArray(VAO);
@@ -53,7 +51,6 @@ void Mesh::Draw()
     glBindVertexArray(0);
 
 }
-
 void Mesh::Draw(ShaderProgram *shader)
 {
     
@@ -86,13 +83,11 @@ void Model::Draw(ShaderProgram *shader)
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
 }
-
 void Model::Draw()
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw();
 }
-
 void Model::loadModel(std::string path)
 {
     Assimp::Importer import;
@@ -121,7 +116,6 @@ void Model::processNode(aiNode* node, const aiScene* scene)
         processNode(node->mChildren[i], scene);
     }
 }
-
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     std::vector<Vertex> vertices;
@@ -178,7 +172,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     }
     return Mesh::Mesh(vertices, indices, textures);
 }
-
 
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma)
 {
