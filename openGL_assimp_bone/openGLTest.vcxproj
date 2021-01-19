@@ -28,6 +28,7 @@
     <ClInclude Include="Viewer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AssimpLoader.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="Main.cpp" />

@@ -35,9 +35,11 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("Material.Ks");
 	shaderProgram->addUniform("Material.Shiness");
 
-	shaderProgram->addUniform("mview");
+	//shaderProgram->addUniform("mview");
 	shaderProgram->addUniform("nmat");
 	shaderProgram->addUniform("mvp");
+
+	shaderProgram->addUniform("boneTransform");
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
@@ -146,7 +148,7 @@ void MyGlWindow::draw() {
 		mview = view * model;
 		imvp = glm::inverse(mview);
 		nmat = glm::mat3(glm::transpose(imvp));
-		glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
+		//glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
 		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 		if (m_model) {

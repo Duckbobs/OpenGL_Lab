@@ -9,19 +9,28 @@
 #include <assimp/scene.h>
 
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 #include "Mesh.h"
 
+
+struct ModelData {
+    /*  Model 데이터  */
+    std::vector<Mesh> meshes;
+    std::vector<aiAnimation*> animations;
+};
+
 class AssimpLoader
 {
 public:
-    void loadModel(std::vector<Mesh>* meshes, std::string path);
+    AssimpLoader(ModelData* modelData, std::string path);
 private:
+    //std::string directory;
+    /*  Scene 데이터  */
     std::vector<Mesh>* meshes;
-    std::string directory;
-    /*  함수   */
+
+    /*  함수  */
+    void loadModel(std::vector<Mesh>* meshes, std::vector<aiAnimation*>* animations, std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     //unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma);

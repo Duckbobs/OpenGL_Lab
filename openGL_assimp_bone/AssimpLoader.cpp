@@ -1,6 +1,10 @@
 #include "AssimpLoader.h"
 
-void AssimpLoader::loadModel(std::vector<Mesh>* meshes, std::string path)
+AssimpLoader::AssimpLoader(ModelData* modelData, std::string path)
+{
+    AssimpLoader::loadModel(&modelData->meshes, &modelData->animations, path);
+}
+void AssimpLoader::loadModel(std::vector<Mesh>* meshes, std::vector<aiAnimation*>* animations, std::string path)
 {
     this->meshes = meshes;
     Assimp::Importer import;
@@ -11,8 +15,14 @@ void AssimpLoader::loadModel(std::vector<Mesh>* meshes, std::string path)
         std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
         return;
     }
-    directory = path.substr(0, path.find_last_of('/'));
+    //directory = path.substr(0, path.find_last_of('/'));
 
+    if (scene->HasAnimations()) {
+        for (unsigned int i = 0; i < scene->mNumAnimations; i++)
+        {
+            animations->push_back(scene->mAnimations[i]);
+        }
+    }
     processNode(scene->mRootNode, scene);
 }
 
@@ -34,7 +44,7 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    //std::vector<Texture> textures;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -52,6 +62,7 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
         vector.z = mesh->mNormals[i].z;
         vertex.Normal = vector;
         // 텍스처 좌표
+        /*
         if (mesh->mTextureCoords[0]) // mesh가 텍스처 좌표를 가지고 있는가?
         {
             glm::vec2 vec;
@@ -61,6 +72,7 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+        */
         vertices.push_back(vertex);
     }
     // indices 처리
@@ -84,7 +96,35 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         }
     }*/
-    return Mesh::Mesh(vertices, indices, textures);
+    int numBones = 0;
+    for (int i = 0; i < mesh->mNumBones; i++)
+    {
+        unsigned int boneIndex = numBones++;
+        for (int j = 0; j < mesh->mBones[i]->mNumWeights; j++)
+        {
+            unsigned int vertexId = mesh->mBones[i]->mWeights[j].mVertexId;
+            float weight = mesh->mBones[i]->mWeights[j].mWeight;
+
+            // 정점은 최대 8개의 Bone의 영향을 받게 됨
+            // 2개의 4차원 벡터를 이용하여 값을 저장
+            for (int k = 0; k < 8; k++)
+            {
+                // 벡터의 인덱스
+                unsigned int vectorId = k / 4;
+                // 각 벡터의 원소 인덱스
+                unsigned int elementId = k % 4;
+                // push_back 효과를 구현
+                if (vertices[vertexId].boneWeights[vectorId][elementId] == 0.0f)
+                {
+                    vertices[vertexId].boneIds[vectorId][elementId] = boneIndex;
+                    vertices[vertexId].boneWeights[vectorId][elementId] = weight;
+                    break;
+                }
+            }
+        }
+    }
+
+    return Mesh::Mesh(vertices, indices/*, textures*/);
 }
 /*
 unsigned int AssimpLoader::TextureFromFile(const char* path, const std::string& directory, bool gamma)

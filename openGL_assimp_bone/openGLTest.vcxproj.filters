@@ -68,6 +68,9 @@
     <ClCompile Include="Model.cpp">
       <Filter>소스 파일\AssimpLoader</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp">
+      <Filter>소스 파일\AssimpLoader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sampler.frag">
