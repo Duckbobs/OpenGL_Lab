@@ -2,11 +2,11 @@
 
 AssimpLoader::AssimpLoader(ModelData* modelData, std::string path)
 {
-    AssimpLoader::loadModel(&modelData->meshes, &modelData->animations, path);
+    AssimpLoader::loadModel(modelData, path);
 }
-void AssimpLoader::loadModel(std::vector<Mesh>* meshes, std::vector<aiAnimation*>* animations, std::string path)
+void AssimpLoader::loadModel(ModelData* modelData, std::string path)
 {
-    this->meshes = meshes;
+    this->modelData = modelData;
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -17,12 +17,14 @@ void AssimpLoader::loadModel(std::vector<Mesh>* meshes, std::vector<aiAnimation*
     }
     //directory = path.substr(0, path.find_last_of('/'));
 
-    if (scene->HasAnimations()) {
+    /*if (scene->HasAnimations()) {
         for (unsigned int i = 0; i < scene->mNumAnimations; i++)
         {
             animations->push_back(scene->mAnimations[i]);
         }
-    }
+    }*/
+    loadBones(scene->mRootNode, scene);
+    modelData->m_BoneInfo.resize(modelData->Bone_Mapping.size());
     processNode(scene->mRootNode, scene);
 }
 
@@ -32,7 +34,8 @@ void AssimpLoader::processNode(aiNode* node, const aiScene* scene)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes->push_back(processMesh(mesh, scene));
+        modelData->total_vertices += mesh->mNumVertices;
+        modelData->meshes.push_back(processMesh(mesh, scene));
     }
     // 그런 다음 각 자식들에게도 동일하게 적용
     for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -40,11 +43,14 @@ void AssimpLoader::processNode(aiNode* node, const aiScene* scene)
         AssimpLoader::processNode(node->mChildren[i], scene);
     }
 }
+
 Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     //std::vector<Texture> textures;
+
+    modelData->Bones.resize(modelData->total_vertices);
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
@@ -96,7 +102,7 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         }
     }*/
-    int numBones = 0;
+    /*int numBones = 0;
     for (int i = 0; i < mesh->mNumBones; i++)
     {
         unsigned int boneIndex = numBones++;
@@ -104,7 +110,6 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
         {
             unsigned int vertexId = mesh->mBones[i]->mWeights[j].mVertexId;
             float weight = mesh->mBones[i]->mWeights[j].mWeight;
-
             // 정점은 최대 8개의 Bone의 영향을 받게 됨
             // 2개의 4차원 벡터를 이용하여 값을 저장
             for (int k = 0; k < 8; k++)
@@ -122,78 +127,103 @@ Mesh AssimpLoader::processMesh(aiMesh* mesh, const aiScene* scene)
                 }
             }
         }
-    }
-
+    }*/
+    loadMeshBones(mesh, modelData->Bones, scene);
     return Mesh::Mesh(vertices, indices/*, textures*/);
 }
-/*
-unsigned int AssimpLoader::TextureFromFile(const char* path, const std::string& directory, bool gamma)
+
+void AssimpLoader::loadBones(aiNode* node, const aiScene* scene)
 {
-    std::string filename = std::string(path);
-    filename = directory + '/' + filename;
+    for (unsigned int i = 0; i < node->mNumChildren; i++) {
+        std::string NodeName(node->mChildren[i]->mName.data);
+        if (NodeName.find(":") != std::string::npos) {
+            std::string BoneName = NodeName;
+            unsigned int BoneIndex = 0;
 
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, nrComponents;
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureID;
-}
-std::vector<Texture> AssimpLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
-{
-    std::vector<Texture> textures_loaded;
-    std::vector<Texture> textures;
-    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
-    {
-        aiString str;
-        mat->GetTexture(type, i, &str);
-        bool skip = false;
-        for (unsigned int j = 0; j < textures_loaded.size(); j++)
-        {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
-            {
-                textures.push_back(textures_loaded[j]);
-                skip = true;
-                break;
+            if (modelData->Bone_Mapping.find(BoneName) == modelData->Bone_Mapping.end()) {
+                BoneIndex = modelData->m_NumBones;
+                modelData->m_NumBones++;
+                modelData->Bone_Mapping[BoneName] = BoneIndex;
             }
         }
-        if (!skip)
-        {   // 텍스처가 이미 불러와져있지 않다면 불러옵니다.
-            Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), directory, true);
-            texture.type = typeName;
-            texture.path = str.C_Str();
-            textures.push_back(texture);
-            textures_loaded.push_back(texture); // 불러온 텍스처를 삽입합니다.
+        if (NodeName != "Body" && NodeName != "metarig" && NodeName != "parasiteZombie" && NodeName != "Armature" && NodeName != "MutantMesh" && NodeName != "Cylinder") {
+            std::string BoneName = NodeName;
+            unsigned int BoneIndex = 0;
+
+            if (modelData->Bone_Mapping.find(BoneName) == modelData->Bone_Mapping.end()) {
+                BoneIndex = modelData->m_NumBones;
+                modelData->m_NumBones++;
+                modelData->Bone_Mapping[BoneName] = BoneIndex;
+            }
+        }
+        //only uncomment if we need to load cylinder model
+    /*else {
+    string BoneName(node->mChildren[i]->mName.data);
+    unsigned int BoneIndex = 0;
+    if (NodeName != "parasiteZombie" || NodeName != "Armature") {
+        if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+            BoneIndex = m_NumBones;
+            m_NumBones++;
+            Bone_Mapping[BoneName] = BoneIndex;
         }
     }
-    return textures;
+
+}*/
+    }
+    for (unsigned int i = 0; i < node->mNumChildren; i++)
+        loadBones(node->mChildren[i], scene);
 }
-*/
+
+void AssimpLoader::loadMeshBones(aiMesh* mesh, std::vector<VertexBoneData>& VertexBoneData, const aiScene* scene)
+{
+    for (unsigned int i = 0; i < mesh->mNumBones; i++)
+    {
+        unsigned int BoneIndex = 0;
+        std::string BoneName(mesh->mBones[i]->mName.data);
+
+        std::cout << BoneName << std::endl;
+
+
+        if (modelData->Bone_Mapping.find(BoneName) != modelData->Bone_Mapping.end())
+        {
+            BoneIndex = modelData->Bone_Mapping[BoneName];
+            //BoneInfo bi;
+            //m_BoneInfo.push_back(bi);
+
+            aiMatrix4x4 tp1 = mesh->mBones[i]->mOffsetMatrix;
+            modelData->m_BoneInfo[BoneIndex].offset = glm::transpose(glm::make_mat4(&tp1.a1));
+        }
+        else {
+            std::cout << "error" << std::endl;
+        }
+
+        int nn = mesh->mBones[i]->mNumWeights;
+        for (unsigned int n = 0; n < nn; n++) {
+            unsigned int vid = mesh->mBones[i]->mWeights[n].mVertexId + modelData->NumVertices;//absolute index
+            float weight = mesh->mBones[i]->mWeights[n].mWeight;
+            VertexBoneData[vid].AddBoneData(BoneIndex, weight);
+        }
+        loadAnimations(scene, BoneName, modelData->Animations);
+    }
+    modelData->NumVertices += mesh->mNumVertices;
+}
+void AssimpLoader::loadAnimations(const aiScene* scene, std::string BoneName, std::map<std::string, std::map<std::string, const aiNodeAnim*>>& animations)
+{
+    for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
+        const aiAnimation* pAnimation = scene->mAnimations[i];
+        std::string animName = pAnimation->mName.data;
+        for (unsigned int j = 0; j < pAnimation->mNumChannels; j++) {
+            std::string name = pAnimation->mChannels[j]->mNodeName.data;
+            if (name == BoneName) {
+
+                animations[animName][BoneName] = pAnimation->mChannels[j];
+                break;
+            }
+            /*if (subname == BoneName) {
+                std::cout << "Anim= " << subname << std::endl;
+                animations[animName][BoneName] = pAnimation->mChannels[j];
+                break;
+            }*/
+        }
+    }
+}

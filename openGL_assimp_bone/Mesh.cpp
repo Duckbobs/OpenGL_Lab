@@ -32,6 +32,15 @@ void Mesh::setupMesh()
     // vertex normals
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+    /*
+    // BoneIDs;
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(3, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);
+    // Weights;
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(4, NUM_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (void*)offsetof(VertexBoneData, Weights));
+    */
     // vertex texture coords
     //glEnableVertexAttribArray(2);
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
@@ -42,13 +51,6 @@ void Mesh::setupMesh()
 
     glBindVertexArray(0);
 }
-/*void Mesh::Draw()
-{
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-}*/
 void Mesh::Draw(ShaderProgram* shader)
 {
     //unsigned int diffuseNr = 1;
@@ -79,4 +81,35 @@ void Mesh::Draw(ShaderProgram* shader)
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+
+BoneInfo::BoneInfo()
+{
+    offset = glm::mat4(1.0f);
+    FinalTransformation = glm::mat4(1.0f);
+    FinalTransDQ.real = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    FinalTransDQ.dual = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
+}
+VertexBoneData::VertexBoneData()
+{
+    Reset();
+};
+void VertexBoneData::Reset()
+{
+    for (unsigned int i = 0; i < NUM_BONES_PER_VERTEX; ++i)
+    {
+        BoneIDs[i] = 0;
+        Weights[i] = 0;
+    }
+}
+void VertexBoneData::AddBoneData(unsigned int BoneID, float Weight)
+{
+    for (unsigned int i = 0; i < NUM_BONES_PER_VERTEX; i++) {
+        if (Weights[i] == 0.0) {
+            BoneIDs[i] = BoneID;
+            Weights[i] = Weight;
+            return;
+        }
+    }
 }

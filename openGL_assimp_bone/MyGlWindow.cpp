@@ -39,7 +39,11 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("nmat");
 	shaderProgram->addUniform("mvp");
 
-	shaderProgram->addUniform("boneTransform");
+	for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
+	{
+		std::string name = "gBones[" + std::to_string(i) + "]";
+		shaderProgram->addUniform(name.c_str());
+	}
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
@@ -93,7 +97,7 @@ void MyGlWindow::draw() {
 	glm::mat4 trans;
 	glm::mat4 rot;
 	glm::mat4 scale;
-	projection = glm::perspective(45.0f, 1.0f * width / height, 0.1f, 500.0f);
+	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 500.0f);
 	
 	shaderProgram->use(); // shader È£Ãâ
 	glm::vec4 lightPos[] = {
@@ -148,9 +152,15 @@ void MyGlWindow::draw() {
 		mview = view * model;
 		imvp = glm::inverse(mview);
 		nmat = glm::mat3(glm::transpose(imvp));
-		//glUniformMatrix4fv(shaderProgram->uniform("mview"), 1, GL_FALSE, glm::value_ptr(mview));
 		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+
+		m_model->BoneTransform(0.0f, Transforms);
+		for (unsigned int i = 0; i < Transforms.size(); ++i)
+		{
+			const std::string name = "gBones[" + std::to_string(i) + "]";
+			glUniformMatrix4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
+		}
 		if (m_model) {
 			m_model->Draw(shaderProgram);
 		}
@@ -184,15 +194,19 @@ glm::mat4 MyGlWindow::lookAt(glm::vec3 campos, glm::vec3 look, glm::vec3 up) {
 	};
 	return Mat4 * Mat4_1;
 }
-glm::mat4 MyGlWindow::perspective(float fovY, float aspect, float near, float far) {
-	float A = -(far + near) / (far - near);
-	float B = -(2 * far + near) / (far - near);
-	glm::mat4 Mat4 = {
-		{1 / (aspect * glm::tan(fovY / 2)), 0, 0, 1},
-		{0, 1 / glm::tan(fovY / 2), 0, 1},
-		{0, 0, A, -1},
-		{0, 0, B, 0}
-	};
-	return Mat4;
-}
+glm::mat4 MyGlWindow::perspective(float fov, float aspect, float n, float f)
+{
+	glm::mat4 P(0.0f);
 
+	const float tanHalfFOV = tan(glm::radians(fov) / 2.0f);
+
+	float A = (-f - n) / (f - n);
+	float B = (2 * (n * f)) / (n - f);
+
+	P[0] = glm::vec4(1.0f / (aspect * tanHalfFOV), 0, 0, 0);
+	P[1] = glm::vec4(0, 1.0 / tanHalfFOV, 0, 0);
+	P[2] = glm::vec4(0, 0, A, -1.0f);
+	P[3] = glm::vec4(0, 0, B, 0.0f);
+
+	return P;
+}

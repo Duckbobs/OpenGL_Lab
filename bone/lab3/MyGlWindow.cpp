@@ -30,7 +30,7 @@ GLuint ssboHandle_t = 0;
 
 
 
-unsigned int amount = 200;
+unsigned int amount = 2000;
 
 
 ShaderProgram *shaderProgram;

@@ -14,7 +14,7 @@ public:
 	void setSize(int w, int h);
 	void draw();
 	glm::mat4 lookAt(glm::vec3 campos, glm::vec3 look, glm::vec3 up);
-	glm::mat4 perspective(float fovy, float aspect, float near, float far);
+	glm::mat4 perspective(float fov, float aspect, float n, float f);
 
 	void setAspect(float r) { m_viewer->setAspectRatio(r); }
 	void initialize();
@@ -26,6 +26,7 @@ private:
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
+	std::vector<glm::mat4> Transforms;
 
 	void setupBuffer();
 };

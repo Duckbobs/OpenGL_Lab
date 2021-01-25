@@ -315,14 +315,12 @@ void Model::loadBones(aiNode *node, const aiScene *scene)
 	}
 
 }*/
-
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
 			loadBones(node->mChildren[i], scene);
 	}
-	
 }
 
 // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -568,13 +566,10 @@ void Model::ReadNodeHeirarchy(const aiScene *scene, float AnimationTime, const a
 	}
 
 	glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
-
 	//NodeTransformationDQ = glm::normalize(glm::fdualquat(glm::quat_cast(NodeTransformation), glm::vec3(NodeTransformation[3][0], NodeTransformation[3][1], NodeTransformation[3][2])));
 	glm::fdualquat GlobalDQ = glm::normalize(ParentDQ * NodeTransformationDQ);
 
 	unsigned int ID = 0;
-
-
 	if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
 		startpos.x = GlobalTransformation[3][0];
 		startpos.y = GlobalTransformation[3][1];
@@ -583,32 +578,12 @@ void Model::ReadNodeHeirarchy(const aiScene *scene, float AnimationTime, const a
 		skeleton_pose[ID] = startpos;
 	}
 
-
 	if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
 		unsigned int NodeIndex = Bone_Mapping[NodeName];
-
-		
 		m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[NodeIndex].offset;
-	//	m_BoneInfo[NodeIndex].FinalTransformation = glm::mat4(1.0);
-			
-		//glm::fdualquat offsetDQ = glm::normalize(glm::fdualquat(glm::dualquat_cast(convertMatrix(m_BoneInfo[NodeIndex].offset))));
 		glm::fdualquat offsetDQ = glm::normalize(glm::fdualquat(glm::normalize(glm::quat_cast(m_BoneInfo[NodeIndex].offset)), glm::vec3(m_BoneInfo[NodeIndex].offset[3][0], m_BoneInfo[NodeIndex].offset[3][1], m_BoneInfo[NodeIndex].offset[3][2])));
 
 		m_BoneInfo[NodeIndex].FinalTransDQ = glm::normalize(GlobalDQ * offsetDQ);
-	//	m_BoneInfo[NodeIndex].FinalTransDQ = IdentityDQ;
-		
-	//	m_BoneInfo[NodeIndex].FinalTransDQ = 
-		//glm::mat3x4 t = convertMatrix(m_BoneInfo[NodeIndex].FinalTransformation);
-		//m_BoneInfo[NodeIndex].FinalTransDQ = glm::dualquat_cast(t);
-
-		//dual quaternion 
-		//glm::fquat FinalQuat = glm::quat_cast(m_BoneInfo[NodeIndex].FinalTransformation);
-		//glm::quat finalQuat = quatcast(m_BoneInfo[NodeIndex].FinalTransformation);
-
-		/*m_BoneInfo[NodeIndex].FinalTransDQ = glm::fdualquat(glm::normalize(FinalQuat), glm::vec3(m_BoneInfo[NodeIndex].FinalTransformation[3][0],
-																									m_BoneInfo[NodeIndex].FinalTransformation[3][1],
-																									m_BoneInfo[NodeIndex].FinalTransformation[3][2]));
-		*/
 	}
 
 	for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
