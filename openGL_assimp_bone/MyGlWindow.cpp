@@ -7,7 +7,9 @@
 #include <glm/gtx/string_cast.hpp> // to_string()
 
 #include <vector>
+#include "Splines.h"
 
+std::vector< SplineLib::Vec2f> cps;
 void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
@@ -16,7 +18,7 @@ void MyGlWindow::setupBuffer()
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
-	directory = (char*)"C:\\fbx\\Mutant Walking.fbx";
+	directory = (char*)"assets/fast.fbx";
 	m_model = new Model(directory);
 }
 void MyGlWindow::initialize() {
@@ -44,6 +46,45 @@ void MyGlWindow::initialize() {
 		std::string name = "gBones[" + std::to_string(i) + "]";
 		shaderProgram->addUniform(name.c_str());
 	}
+	/////////////////////////////////////////////
+
+	const SplineLib::Vec2f points[] =
+	{
+		{ 0.0f, 0.0f },
+		{ 7.0f, 5.0f },
+		{ 12.0f, 9.0f },
+		{ 19.0, 13.0f },
+		{ 22.0, 15.0f },
+	};
+
+	const int numPoints = sizeof(points) / sizeof(points[0]);
+
+	SplineLib::cSpline2 splines[numPoints + 1];
+
+	int numSplines = SplineLib::SplinesFromPoints(numPoints, points, numPoints + 1, splines);
+	float sumLen = 0.0f;
+
+
+	std::ofstream myfile;
+	myfile.open("example.txt");
+
+
+
+	for (int i = 0; i < 23; i++)
+	{
+		SplineLib::Vec2f qp(i, i * 16.0f / 23.0f);
+		int index;
+		float t = SplineLib::FindClosestPoint(qp, numSplines, splines, &index);
+
+		SplineLib::Vec2f cp = SplineLib::Position(splines[index], t);
+		cps.push_back(cp);
+		myfile << cp.x << " " << cp.y << std::endl;
+
+		printf("Closest point to [%6.1f, %6.1f]: index = %2d, t = %4.2f, point = [%6.1f, %6.1f]\n", qp.x, qp.y, index, t, cp.x, cp.y);
+	}
+
+
+	myfile.close();
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
@@ -154,8 +195,53 @@ void MyGlWindow::draw() {
 		nmat = glm::mat3(glm::transpose(imvp));
 		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
 		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		
+	float duration1 = m_model->getDuration();
+	float duration2 = m_model->getDuration();//
 
-		m_model->BoneTransform(0.0f, Transforms);
+	//반복 하도록 설정
+	float TimeInTicks = 0.1 * 30.0f;
+	
+	float gap = duration1 / duration2;
+	float AnimationTime1 = fmod(TimeInTicks, duration1);  //fast
+	float AnimationTime2 = fmod(TimeInTicks, duration1);   //slow
+	
+	//time curve 
+	int index;
+	for (int i = 0; i < cps.size()-1; i++) {
+		if (cps[i].x < AnimationTime1 && cps[i + 1].x >= AnimationTime1) {
+			index = i;
+			break;
+		}
+	}
+	
+	//Animation 1 일때(slow) dap 이  fast
+	float dap = (cps[index].y * AnimationTime1) / (cps[index].x+0.000001);
+	float d = (dap)/(AnimationTime1);
+
+	int type = m_model->BoneTransform(0.1*gap, Transforms, dualQuaternions);  //fast
+	type = 0;
+	std::vector<glm::fdualquat> dualQuaternions3;
+	for (unsigned int i = 0; i < Transforms.size(); ++i)
+	{
+		glm::fdualquat a = dualQuaternions[i];
+		dualQuaternions3.push_back(a);
+	}
+	for (unsigned int i = 0; i < Transforms.size(); ++i)
+	{
+		const std::string name = "gBones[" + std::to_string(i) + "]";
+		glUniformMatrix4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
+
+	}
+	DQs.resize(dualQuaternions.size());
+	for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+		
+		DQs[i] = glm::mat2x4_cast(dualQuaternions3[i]);
+		const std::string name = "dqs[" + std::to_string(i) + "]";
+		glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(DQs[i]));
+	}
+	glUniform1iv(shaderProgram->uniform("type"), 1, &type);
+	
 		for (unsigned int i = 0; i < Transforms.size(); ++i)
 		{
 			const std::string name = "gBones[" + std::to_string(i) + "]";

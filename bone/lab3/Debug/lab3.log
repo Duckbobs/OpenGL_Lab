@@ -7,13 +7,14 @@ C:\Git\Etc\bone\lab3\Model.cpp(222,17): warning C4244: '초기화 중': 'double'
 C:\Git\Etc\bone\lab3\Model.cpp(247,20): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
 C:\Git\Etc\bone\lab3\Model.cpp(491,30): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   MyGlWindow.cpp
-C:\Git\Etc\bone\lab3\MyGlWindow.cpp(221,20): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Git\Etc\bone\lab3\MyGlWindow.cpp(229,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Git\Etc\bone\lab3\MyGlWindow.cpp(335,23): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Git\Etc\bone\lab3\MyGlWindow.cpp(436,18): warning C4244: '초기화 중': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Git\Etc\bone\lab3\MyGlWindow.cpp(208,20): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Git\Etc\bone\lab3\MyGlWindow.cpp(216,12): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Git\Etc\bone\lab3\MyGlWindow.cpp(310,23): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Git\Etc\bone\lab3\MyGlWindow.cpp(411,18): warning C4244: '초기화 중': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Source.cpp
 C:\Git\Etc\bone\lab3\Source.cpp(214,19): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
 C:\Git\Etc\bone\lab3\Source.cpp(227,22): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
 C:\Git\Etc\bone\lab3\Source.cpp(199,9): warning C4101: 'lastTime' :참조되지 않은 지역 변수입니다.
   코드를 생성하고 있습니다...
+LINK : warning LNK4098: 'MSVCRT' defaultlib가 다른 라이브러리와 충돌합니다. /NODEFAULTLIB:library를 사용하십시오.
   lab3.vcxproj -> C:\Git\Etc\bone\Debug\Skeleton.exe

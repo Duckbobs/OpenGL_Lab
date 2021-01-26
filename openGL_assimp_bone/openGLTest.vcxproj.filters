@@ -45,6 +45,15 @@
     <ClInclude Include="Model.h">
       <Filter>헤더 파일\AssimpLoader</Filter>
     </ClInclude>
+    <ClInclude Include="Skeleton.h">
+      <Filter>헤더 파일\AssimpLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Interval.h">
+      <Filter>헤더 파일\AssimpLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Splines.h">
+      <Filter>헤더 파일\AssimpLoader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -69,6 +78,12 @@
       <Filter>소스 파일\AssimpLoader</Filter>
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp">
+      <Filter>소스 파일\AssimpLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Interval.cpp">
+      <Filter>소스 파일\AssimpLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Splines.cpp">
       <Filter>소스 파일\AssimpLoader</Filter>
     </ClCompile>
   </ItemGroup>

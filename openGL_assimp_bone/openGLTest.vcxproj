@@ -21,20 +21,25 @@
   <ItemGroup>
     <ClInclude Include="AssimpLoader.h" />
     <ClInclude Include="global.h" />
+    <ClInclude Include="Interval.h" />
     <ClInclude Include="Loader.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="MyGlWindow.h" />
+    <ClInclude Include="Skeleton.h" />
+    <ClInclude Include="Splines.h" />
     <ClInclude Include="Viewer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AssimpLoader.cpp" />
     <ClCompile Include="global.cpp" />
+    <ClCompile Include="Interval.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="MyGlWindow.cpp" />
+    <ClCompile Include="Splines.cpp" />
     <ClCompile Include="Viewer.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -14,11 +14,12 @@
 #include <assimp/postprocess.h>
 
 #include "Mesh.h"
+#include "Interval.h"
 
 
 struct ModelData {
     /*  Model ตฅภฬลอ  */
-    aiScene* scene;
+    const aiScene* scene;
     unsigned int m_NumBones = 0;
     unsigned int NumVertices = 0;
     unsigned int total_vertices = 0;
@@ -27,7 +28,9 @@ struct ModelData {
     std::map<std::string, unsigned int> Bone_Mapping;
     std::vector<BoneInfo> m_BoneInfo;
     std::map<std::string, std::map<std::string, const aiNodeAnim*>> Animations;
-
+    glm::fdualquat IdentityDQ = glm::fdualquat(glm::quat(1.f, 0.f, 0.f, 0.f), glm::quat(0.f, 0.f, 0.f, 0.f));
+    std::vector<Interval> m_constraints;
+    std::map<unsigned int, glm::vec3> skeleton_pose;
 };
 
 class AssimpLoader

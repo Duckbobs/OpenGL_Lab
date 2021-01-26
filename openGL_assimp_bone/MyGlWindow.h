@@ -26,7 +26,9 @@ private:
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
-	std::vector<glm::mat4> Transforms;
-
 	void setupBuffer();
+
+	std::vector<glm::mat4> Transforms;
+	std::vector<glm::fdualquat> dualQuaternions;
+	std::vector<glm::mat2x4> DQs;
 };

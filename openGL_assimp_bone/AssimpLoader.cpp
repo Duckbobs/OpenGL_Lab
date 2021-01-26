@@ -9,6 +9,10 @@ void AssimpLoader::loadModel(ModelData* modelData, std::string path)
     this->modelData = modelData;
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    modelData->scene = scene;
+
+    ///////////////////////////////////////////////////////// 여기선 읽히는데
+    unsigned int numPosKeys = modelData->scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -25,6 +29,7 @@ void AssimpLoader::loadModel(ModelData* modelData, std::string path)
     }*/
     loadBones(scene->mRootNode, scene);
     modelData->m_BoneInfo.resize(modelData->Bone_Mapping.size());
+
     processNode(scene->mRootNode, scene);
 }
 

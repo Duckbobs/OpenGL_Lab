@@ -191,23 +191,10 @@ void MyGlWindow::changeCamera()
 
 void MyGlWindow::drawMesh(float animationTime, glm::mat4 & model)
 {
-
-	
-
-//	glm::mat4 imvp = glm::inverse(model);
-//	glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
-
-	
 	modelShader->use();
-
-//	glUniformMatrix4fv(modelShader->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
-//	glUniformMatrix3fv(modelShader->uniform("normalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-
 
 	float duration1 = m_meshModel->getDuration();
 	float duration2 = m_meshModel2->getDuration();
-
-
 
 	//반복 하도록 설정
 	float TimeInTicks = animationTime * 30.0f;
@@ -229,12 +216,9 @@ void MyGlWindow::drawMesh(float animationTime, glm::mat4 & model)
 	float dap = (cps[index].y * AnimationTime1) / (cps[index].x+0.000001);
 	float d = (dap)/(AnimationTime1);
 
-
 	int type = m_meshModel->BoneTransform(animationTime*gap, Transforms, dualQuaternions);  //fast
 	type = m_meshModel2->BoneTransform(animationTime, Transforms2, dualQuaternions2);   //slow
 	type = 0;
-
-	
 	vector<glm::fdualquat> dualQuaternions3;
 	for (unsigned int i = 0; i < Transforms.size(); ++i)
 	{
@@ -243,29 +227,20 @@ void MyGlWindow::drawMesh(float animationTime, glm::mat4 & model)
 		glm::fdualquat c = glm::lerp(a, b, 0.9f);
 		dualQuaternions3.push_back(c);
 	}
-
-
 	for (unsigned int i = 0; i < Transforms.size(); ++i)
 	{
 		const std::string name = "gBones[" + std::to_string(i) + "]";
 		glUniformMatrix4fv(modelShader->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
 
 	}
-
 	DQs.resize(dualQuaternions.size());
 	DQs2.resize(dualQuaternions2.size());
-
-
-
 	for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
 		
 		DQs[i] = glm::mat2x4_cast(dualQuaternions3[i]);
 		const std::string name = "dqs[" + std::to_string(i) + "]";
 		glUniformMatrix2x4fv(modelShader->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(DQs[i]));
 	}
-	
-
-	
 	glUniform1iv(modelShader->uniform("type"), 1, &type);
 	
 
