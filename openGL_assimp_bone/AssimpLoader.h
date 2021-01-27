@@ -37,6 +37,7 @@ class AssimpLoader
 {
 public:
     AssimpLoader(ModelData* modelData, std::string path);
+    Assimp::Importer import;
 private:
     //std::string directory;
     /*  Scene ตฅภฬลอ  */

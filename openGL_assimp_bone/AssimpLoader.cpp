@@ -1,5 +1,7 @@
 #include "AssimpLoader.h"
 
+
+const aiScene* scene;
 AssimpLoader::AssimpLoader(ModelData* modelData, std::string path)
 {
     AssimpLoader::loadModel(modelData, path);
@@ -7,9 +9,8 @@ AssimpLoader::AssimpLoader(ModelData* modelData, std::string path)
 void AssimpLoader::loadModel(ModelData* modelData, std::string path)
 {
     this->modelData = modelData;
-    Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-    modelData->scene = scene;
+    modelData->scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    scene = modelData->scene;
 
     ///////////////////////////////////////////////////////// 여기선 읽히는데
     unsigned int numPosKeys = modelData->scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;

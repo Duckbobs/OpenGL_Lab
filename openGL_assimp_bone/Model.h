@@ -8,8 +8,9 @@
 
 class Model {
 public:
-    ModelData modelData;
+    ModelData * modelData;
     /*  ÇÔ¼ö   */
+    ~Model();
     Model(char* path);
     void Draw(ShaderProgram* shader);
     //void Draw();

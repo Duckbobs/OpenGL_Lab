@@ -150,7 +150,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Git\Etc\openGL_assimp_bone\include\stb;C:\graphics\tools\Assimp\include;C:\graphics\tools\glm;C:\graphics\tools\glfw\include;C:\graphics\tools\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\CHOI\Desktop\Git\Etc\openGL_assimp_animation\include\stb;C:\graphics\tools\Assimp\include;C:\graphics\tools\glm;C:\graphics\tools\glfw\include;C:\graphics\tools\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

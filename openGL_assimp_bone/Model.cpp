@@ -1,15 +1,21 @@
 #include "Model.h"
 #include <glm/gtc/type_ptr.hpp> // value_ptr()
 
+Model::~Model()
+{
+    delete modelData;
+}
 Model::Model(char* path)
 {
-    AssimpLoader* assimpLoader = new AssimpLoader(&modelData, path);
+
+    modelData = new ModelData();
+    AssimpLoader* assimpLoader = new AssimpLoader(modelData, path);
 }
 void Model::Draw(ShaderProgram* shader)
 {
-    modelData.scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
-    for (unsigned int i = 0; i < modelData.meshes.size(); i++) {
-        modelData.meshes[i].Draw(shader);
+   
+    for (unsigned int i = 0; i < modelData->meshes.size(); i++) {
+        modelData->meshes[i].Draw(shader);
     }
 }
 glm::mat4 Model::CalcBoneTransform(aiAnimation* anim) {
@@ -25,51 +31,51 @@ int Model::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms
     glm::mat4 Identity = glm::mat4(1.0f);
 
     //initialization
-    if (modelData.scene->mNumAnimations == 0) {
-        Transforms.resize(modelData.m_NumBones);
-        dqs.resize(modelData.m_NumBones);
-        for (unsigned int i = 0; i < modelData.m_NumBones; ++i) {
+    if (modelData->scene->mNumAnimations == 0) {
+        Transforms.resize(modelData->m_NumBones);
+        dqs.resize(modelData->m_NumBones);
+        for (unsigned int i = 0; i < modelData->m_NumBones; ++i) {
             Transforms[i] = glm::mat4(1.0f);
-            dqs[i] = modelData.IdentityDQ;
+            dqs[i] = modelData->IdentityDQ;
         }
         return 0;
     }
 
     ///////////////////////////////////////////////////////// 여기선 안읽힘
-    unsigned int numPosKeys = modelData.scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
+    unsigned int numPosKeys = modelData->scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
 
-    float TicksPerSecond = modelData.scene->mAnimations[0]->mTicksPerSecond != 0 ?
-        modelData.scene->mAnimations[0]->mTicksPerSecond : 25.0f;
+    float TicksPerSecond = modelData->scene->mAnimations[0]->mTicksPerSecond != 0 ?
+        modelData->scene->mAnimations[0]->mTicksPerSecond : 25.0f;
 
     float TimeInTicks = TimeInSeconds * TicksPerSecond;
 
-    float duration = modelData.scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
+    float duration = modelData->scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
     float AnimationTime = fmod(TimeInTicks, duration);
 
 
 
-    ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, Identity, modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
+    ReadNodeHeirarchy(modelData->scene, AnimationTime, modelData->scene->mRootNode, Identity, modelData->IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
 
     //	debugSkeletonPose(skeleton_pose);
 
-    Transforms.resize(modelData.m_NumBones);
-    dqs.resize(modelData.m_NumBones);
+    Transforms.resize(modelData->m_NumBones);
+    dqs.resize(modelData->m_NumBones);
 
 
-    for (unsigned int i = 0; i < modelData.m_NumBones; ++i) {
+    for (unsigned int i = 0; i < modelData->m_NumBones; ++i) {
         Transforms[i] = glm::mat4(1.0f);
-        Transforms[i] = modelData.m_BoneInfo[i].FinalTransformation;
+        Transforms[i] = modelData->m_BoneInfo[i].FinalTransformation;
     }
 
     for (unsigned int i = 0; i < dqs.size(); ++i) {
-        dqs[i] = modelData.IdentityDQ;
-        dqs[i] = modelData.m_BoneInfo[i].FinalTransDQ;
+        dqs[i] = modelData->IdentityDQ;
+        dqs[i] = modelData->m_BoneInfo[i].FinalTransDQ;
         //debuggingDualQuat(dqs[i]);
     }
 
 
-    for (int i = 0; i < modelData.m_constraints.size(); i++) {
-        if (modelData.m_constraints[i].contains(AnimationTime)) return 1;
+    for (int i = 0; i < modelData->m_constraints.size(); i++) {
+        if (modelData->m_constraints[i].contains(AnimationTime)) return 1;
     }
 
     return 0;
@@ -81,7 +87,7 @@ void Model::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const a
     const aiAnimation* pAnimation = scene->mAnimations[0];
 
     glm::mat4 NodeTransformation = glm::mat4(1.0f);
-    glm::fdualquat NodeTransformationDQ = modelData.IdentityDQ;
+    glm::fdualquat NodeTransformationDQ = modelData->IdentityDQ;
 
 
     aiMatrix4x4 tp1 = pNode->mTransformation;
@@ -89,7 +95,7 @@ void Model::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const a
 
 
     const aiNodeAnim* pNodeAnim = nullptr;
-    pNodeAnim = modelData.Animations[pAnimation->mName.data][NodeName];
+    pNodeAnim = modelData->Animations[pAnimation->mName.data][NodeName];
 
 
     if (pNodeAnim) {
@@ -121,20 +127,20 @@ void Model::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const a
     glm::fdualquat GlobalDQ = glm::normalize(ParentDQ * NodeTransformationDQ);
 
     unsigned int ID = 0;
-    if (modelData.Bone_Mapping.find(NodeName) != modelData.Bone_Mapping.end()) {
+    if (modelData->Bone_Mapping.find(NodeName) != modelData->Bone_Mapping.end()) {
         startpos.x = GlobalTransformation[3][0];
         startpos.y = GlobalTransformation[3][1];
         startpos.z = GlobalTransformation[3][2];
-        ID = modelData.Bone_Mapping[NodeName];
-        modelData.skeleton_pose[ID] = startpos;
+        ID = modelData->Bone_Mapping[NodeName];
+        modelData->skeleton_pose[ID] = startpos;
     }
 
-    if (modelData.Bone_Mapping.find(NodeName) != modelData.Bone_Mapping.end()) {
-        unsigned int NodeIndex = modelData.Bone_Mapping[NodeName];
-        modelData.m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * modelData.m_BoneInfo[NodeIndex].offset;
-        glm::fdualquat offsetDQ = glm::normalize(glm::fdualquat(glm::normalize(glm::quat_cast(modelData.m_BoneInfo[NodeIndex].offset)), glm::vec3(modelData.m_BoneInfo[NodeIndex].offset[3][0], modelData.m_BoneInfo[NodeIndex].offset[3][1], modelData.m_BoneInfo[NodeIndex].offset[3][2])));
+    if (modelData->Bone_Mapping.find(NodeName) != modelData->Bone_Mapping.end()) {
+        unsigned int NodeIndex = modelData->Bone_Mapping[NodeName];
+        modelData->m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * modelData->m_BoneInfo[NodeIndex].offset;
+        glm::fdualquat offsetDQ = glm::normalize(glm::fdualquat(glm::normalize(glm::quat_cast(modelData->m_BoneInfo[NodeIndex].offset)), glm::vec3(modelData->m_BoneInfo[NodeIndex].offset[3][0], modelData->m_BoneInfo[NodeIndex].offset[3][1], modelData->m_BoneInfo[NodeIndex].offset[3][2])));
 
-        modelData.m_BoneInfo[NodeIndex].FinalTransDQ = glm::normalize(GlobalDQ * offsetDQ);
+        modelData->m_BoneInfo[NodeIndex].FinalTransDQ = glm::normalize(GlobalDQ * offsetDQ);
     }
 
     for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
@@ -222,8 +228,8 @@ float Model::getDuration()
     return 0.1f;
     try
     {
-        unsigned int numPosKeys = modelData.scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
-        float duration = modelData.scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
+        unsigned int numPosKeys = modelData->scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
+        float duration = modelData->scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
         return duration;
     }
     catch (const std::exception& e)

@@ -41,7 +41,7 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("nmat");
 	shaderProgram->addUniform("mvp");
 
-	for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
+	for (unsigned int i = 0; i < m_model->modelData->m_NumBones; ++i)
 	{
 		std::string name = "gBones[" + std::to_string(i) + "]";
 		shaderProgram->addUniform(name.c_str());
