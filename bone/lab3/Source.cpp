@@ -217,9 +217,13 @@ int main(void)
 	win->changeCamera();
 
 
+	double fps_previousTime = glfwGetTime();
+	double fps_currentTime = glfwGetTime();
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		fps_currentTime = glfwGetTime();
+		glfwSetWindowTitle(window, std::to_string(fps_currentTime - fps_previousTime).c_str());
 
 		
 
@@ -256,6 +260,7 @@ int main(void)
 		//glfwWaitEvents();
 			
 
+		fps_previousTime = fps_currentTime;
 	}
 
 	glfwDestroyWindow(window);

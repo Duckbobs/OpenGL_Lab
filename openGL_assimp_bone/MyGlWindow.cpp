@@ -18,7 +18,7 @@ void MyGlWindow::setupBuffer()
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
-	directory = (char*)"assets/fast.fbx";
+	directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
 }
 void MyGlWindow::initialize() {
@@ -36,16 +36,19 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("Material.Kd");
 	shaderProgram->addUniform("Material.Ks");
 	shaderProgram->addUniform("Material.Shiness");
+	shaderProgram->addUniform("viewProjection");
 
-	//shaderProgram->addUniform("mview");
-	shaderProgram->addUniform("nmat");
-	shaderProgram->addUniform("mvp");
-
-	for (unsigned int i = 0; i < m_model->modelData->m_NumBones; ++i)
+	/*for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
 	{
 		std::string name = "gBones[" + std::to_string(i) + "]";
 		shaderProgram->addUniform(name.c_str());
+	}*/
+	for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
+	{
+		std::string name = "dqs[" + std::to_string(i) + "]";
+		shaderProgram->addUniform(name.c_str());
 	}
+
 	/////////////////////////////////////////////
 
 	const SplineLib::Vec2f points[] =
@@ -85,6 +88,38 @@ void MyGlWindow::initialize() {
 
 
 	myfile.close();
+
+
+	modelMatrices = new glm::mat4[amount];
+	srand(clock()); // initialize random seed	
+	float radius = 200.0;
+	float offset = 100.5f;
+	for (unsigned int i = 0; i < amount; i++)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
+		float angle = (float)i / (float)amount * 360.0f;
+		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float x = sin(angle) * radius + displacement;
+		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float y = 0; // keep height of field smaller compared to width of x and z
+		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float z = cos(angle) * radius + displacement;
+		model = glm::translate(model, glm::vec3(x, y, z));
+		float scale = .1f;
+		model = glm::scale(model, glm::vec3(scale));
+
+		float rotAngle = (rand() % 360);
+		model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+		modelMatrices[i] = model;
+	}
+	shaderProgram->use();
+	glGenBuffers(1, &ssboHandle_t);  //transformation
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * amount, modelMatrices, GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_t);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	shaderProgram->disable();
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
@@ -105,7 +140,7 @@ MyGlWindow::MyGlWindow(int w, int h)
 const glm::mat4 _mat = glm::mat4(1.0f);
 const glm::vec3 _vec = glm::vec3(1, 1, 1);
 // 매 프레임 호출 됨
-void MyGlWindow::draw() {
+void MyGlWindow::draw(float animationTime) {
 	// @------------------------------------------------------------------------------@
 	// | Settings																	  |
 	// @------------------------------------------------------------------------------@
@@ -138,7 +173,7 @@ void MyGlWindow::draw() {
 	glm::mat4 trans;
 	glm::mat4 rot;
 	glm::mat4 scale;
-	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 500.0f);
+	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
 	
 	shaderProgram->use(); // shader 호출
 	glm::vec4 lightPos[] = {
@@ -193,62 +228,24 @@ void MyGlWindow::draw() {
 		mview = view * model;
 		imvp = glm::inverse(mview);
 		nmat = glm::mat3(glm::transpose(imvp));
-		glUniformMatrix3fv(shaderProgram->uniform("nmat"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 		
-	float duration1 = m_model->getDuration();
-	float duration2 = m_model->getDuration();//
-
-	//반복 하도록 설정
-	float TimeInTicks = 0.1 * 30.0f;
+		/*float duration1 = m_model->getDuration();
+		//반복 하도록 설정
+		float TimeInTicks = animationTime * 1.0f;
+		float AnimationTime1 = fmod(TimeInTicks, duration1);  //fast
 	
-	float gap = duration1 / duration2;
-	float AnimationTime1 = fmod(TimeInTicks, duration1);  //fast
-	float AnimationTime2 = fmod(TimeInTicks, duration1);   //slow
-	
-	//time curve 
-	int index;
-	for (int i = 0; i < cps.size()-1; i++) {
-		if (cps[i].x < AnimationTime1 && cps[i + 1].x >= AnimationTime1) {
-			index = i;
-			break;
-		}
-	}
-	
-	//Animation 1 일때(slow) dap 이  fast
-	float dap = (cps[index].y * AnimationTime1) / (cps[index].x+0.000001);
-	float d = (dap)/(AnimationTime1);
-
-	int type = m_model->BoneTransform(0.1*gap, Transforms, dualQuaternions);  //fast
-	type = 0;
-	std::vector<glm::fdualquat> dualQuaternions3;
-	for (unsigned int i = 0; i < Transforms.size(); ++i)
-	{
-		glm::fdualquat a = dualQuaternions[i];
-		dualQuaternions3.push_back(a);
-	}
-	for (unsigned int i = 0; i < Transforms.size(); ++i)
-	{
-		const std::string name = "gBones[" + std::to_string(i) + "]";
-		glUniformMatrix4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
-
-	}
-	DQs.resize(dualQuaternions.size());
-	for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+		m_model->BoneTransform(AnimationTime1, Transforms, dualQuaternions);
+		DQs.resize(dualQuaternions.size());
+		for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
 		
-		DQs[i] = glm::mat2x4_cast(dualQuaternions3[i]);
-		const std::string name = "dqs[" + std::to_string(i) + "]";
-		glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(DQs[i]));
-	}
-	glUniform1iv(shaderProgram->uniform("type"), 1, &type);
-	
-		for (unsigned int i = 0; i < Transforms.size(); ++i)
-		{
-			const std::string name = "gBones[" + std::to_string(i) + "]";
-			glUniformMatrix4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
-		}
+			DQs[i] = glm::mat2x4_cast(dualQuaternions[i]);
+			const std::string name = "dqs[" + std::to_string(i) + "]";
+			glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(DQs[i]));
+		}*/
+
 		if (m_model) {
-			m_model->Draw(shaderProgram);
+			m_model->Draw(shaderProgram, amount);
 		}
 
 	shaderProgram->disable();

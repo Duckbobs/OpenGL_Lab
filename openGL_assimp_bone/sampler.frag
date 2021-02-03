@@ -18,6 +18,9 @@ uniform MaterialInfo Material;
 
 out vec4 FragColor;
 
+in vec2 TexCoord;
+uniform sampler2D ourTexture;
+
 void main()
 {
 	vec4 pos = vec4(Position, 1);
@@ -29,7 +32,7 @@ void main()
 	V = normalize(-pos).xyz;
 	N = Normal;
 
-	for(int i=0; i<5; i++) {
+	for(int i=0; i<1; i++) {
 		L = normalize(Light[i].Position - pos).xyz;
 		H = normalize(V + L);
 
@@ -40,7 +43,9 @@ void main()
 		fLightIntensity += (diffuse + spec);
 	}
 	fLightIntensity = ambient + fLightIntensity;
-	FragColor = vec4(fLightIntensity, 1);
+
+    FragColor = texture(ourTexture, TexCoord) * vec4(fLightIntensity, 1);
+	//FragColor = vec4(fLightIntensity, 1);
 }
 
 	//R = normalize(reflect(-L, N));

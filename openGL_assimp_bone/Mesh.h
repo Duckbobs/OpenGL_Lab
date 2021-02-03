@@ -13,11 +13,11 @@
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 #define INVALID_MATERIAL 0xFFFFFFFF
 
-/*struct Texture {
+struct Texture {
     unsigned int id;
     std::string type;
     std::string path;
-};*/
+};
 /*struct Bone
 {
     glm::mat4 boneOffset;
@@ -27,7 +27,7 @@
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
-    //glm::vec2 TexCoords;
+    glm::vec2 TexCoords;
     //float boneWeights[2][4] = { 0.0f };
     //float boneIds[2][4] = { 0.0f };
 };
@@ -52,21 +52,21 @@ public:
     /*  Mesh 데이터  */
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    //std::vector<Texture> textures;
+    std::vector<Texture> textures;
     /*  Bone 데이터  */
 	std::vector<BoneInfo> bones;
 	std::vector<VertexBoneData> vertexBoneData;
     //std::vector<Bone> bones;
+    unsigned int texture;
 
     /*  함수         */
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices/*, std::vector<Texture> textures*/);
-    void Draw(ShaderProgram* shaderProgram);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<BoneInfo> bones, std::vector<VertexBoneData> vertexBoneData);
+    void Draw(ShaderProgram* shaderProgram, int num);
     //void Draw();
-private:
 
 private:
     /*  렌더 데이터  */
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO, EBO, vertexBones_vbo;
     /*  함수         */
     void setupMesh();
 };

@@ -227,12 +227,12 @@ void MyGlWindow::drawMesh(float animationTime, glm::mat4 & model)
 		glm::fdualquat c = glm::lerp(a, b, 0.9f);
 		dualQuaternions3.push_back(c);
 	}
-	for (unsigned int i = 0; i < Transforms.size(); ++i)
+	/*for (unsigned int i = 0; i < Transforms.size(); ++i)
 	{
 		const std::string name = "gBones[" + std::to_string(i) + "]";
 		glUniformMatrix4fv(modelShader->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(Transforms[i]));
 
-	}
+	}*/
 	DQs.resize(dualQuaternions.size());
 	DQs2.resize(dualQuaternions2.size());
 	for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {

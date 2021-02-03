@@ -21,6 +21,10 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouseDragging(double width, double height);
 
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+float animationTime = 0.0f;
+
 int main() {
 	// @------------------------------------------------------------------------------@
 	// | Settings																	  |
@@ -91,24 +95,30 @@ int main() {
 	// @------------------------------------------------------------------------------@
 	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 	win = new MyGlWindow(width, height);
+	float startFrame = glfwGetTime();
 
-	//glm::vec3 camPos = glm::vec3(5, 5, 5);
-	//glm::vec3 Look = glm::vec3(0, 0, 0);
-	//glm::vec3 Up = glm::vec3(0, 1, 0);
-
-	//win->lookAt(camPos, Look, Up);
-
-	//win->perspective(glm::radians(45.0f), 780.0f/750.0f, 0.1f, 500.0f);
-
+	double fps_previousTime = glfwGetTime();
+	double fps_currentTime = glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
-		win->draw(); // 매번 호출
+		fps_currentTime = glfwGetTime();
+		glfwSetWindowTitle(window, std::to_string(fps_currentTime - fps_previousTime).c_str());
+
+
+		// Rendering
+		float currentFrame = glfwGetTime();
+		//deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		animationTime = (currentFrame - startFrame);
+
+		win->draw(animationTime); // 매번 호출
 
 		glfwSwapBuffers(window); // Swap front and back buffers
-
 		glfwPollEvents(); // Poll forand process events
-		
 		mouseDragging(width, height);
+
+
+		fps_previousTime = fps_currentTime;
 	}
 
 	// @------------------------------------------------------------------------------@

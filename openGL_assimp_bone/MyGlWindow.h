@@ -12,7 +12,7 @@ public:
 	MyGlWindow(int w, int h);
 	void resize(int w, int h);
 	void setSize(int w, int h);
-	void draw();
+	void draw(float animationTime);
 	glm::mat4 lookAt(glm::vec3 campos, glm::vec3 look, glm::vec3 up);
 	glm::mat4 perspective(float fov, float aspect, float n, float f);
 
@@ -23,6 +23,7 @@ public:
 	Model* m_model;
 
 private:
+	unsigned int amount = 2000; // ¸ðµ¨ °³¼ö
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
@@ -31,4 +32,6 @@ private:
 	std::vector<glm::mat4> Transforms;
 	std::vector<glm::fdualquat> dualQuaternions;
 	std::vector<glm::mat2x4> DQs;
+	glm::mat4* modelMatrices;
+	GLuint ssboHandle_t = 0;
 };

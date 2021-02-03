@@ -1,8 +1,5 @@
 #pragma once
 
-//#include "stb_image.h"
-//#define STB_IMAGE_IMPLEMENTATION
-
 #include "Loader.h"
 #include <glm/glm.hpp> // 순서 상관 없음
 #include <glm/gtc/type_ptr.hpp> // make_mat4()
@@ -16,10 +13,10 @@
 #include "Mesh.h"
 #include "Interval.h"
 
-
 struct ModelData {
     /*  Model 데이터  */
     const aiScene* scene;
+    std::string directory;
     unsigned int m_NumBones = 0;
     unsigned int NumVertices = 0;
     unsigned int total_vertices = 0;
@@ -32,13 +29,19 @@ struct ModelData {
     std::vector<Interval> m_constraints;
     std::map<unsigned int, glm::vec3> skeleton_pose;
 };
+/*struct Texture {
+    unsigned int id;
+    std::string type;
+    std::string path;  // 다른 텍스처와 비교하기 위해 텍스처의 경로를 저장
+};*/
 
 class AssimpLoader
 {
 public:
     AssimpLoader(ModelData* modelData, std::string path);
-    Assimp::Importer import;
 private:
+    Assimp::Importer import;
+    const aiScene* scene;
     //std::string directory;
     /*  Scene 데이터  */
     ModelData* modelData;
@@ -52,6 +55,7 @@ private:
     void loadAnimations(const aiScene* scene, std::string BoneName, 
         std::map<std::string, std::map<std::string, const aiNodeAnim*>>& animations);
 
-    //unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma);
-    //std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma);
+    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    std::string changePath(char* path);
 };

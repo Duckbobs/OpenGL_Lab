@@ -31,7 +31,6 @@
     <ClInclude Include="Viewer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AssimpLoader.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="Interval.cpp" />
@@ -116,7 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Git\Etc\openGL_assimp_animation\include\stb;C:\graphics\tools\Assimp\include;C:\graphics\tools\glm;C:\graphics\tools\glfw\include;C:\graphics\tools\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include\stb;C:\graphics\tools\Assimp\include;C:\graphics\tools\glm;C:\graphics\tools\glfw\include;C:\graphics\tools\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
