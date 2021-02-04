@@ -7,6 +7,16 @@
 
 #include "Model.h"
 
+#include <glm/gtc/matrix_transform.hpp> // translate()
+#include <glm/gtc/type_ptr.hpp> // value_ptr()
+
+#include <glm/gtx/string_cast.hpp> // to_string()
+
+struct Instance {
+	float AnimationOffset;
+	glm::mat4 aInstanceMatrix;
+};
+
 class MyGlWindow {
 public:
 	MyGlWindow(int w, int h);
@@ -23,7 +33,9 @@ public:
 	Model* m_model;
 
 private:
-	unsigned int amount = 2000; // ¸ðµ¨ °³¼ö
+	int time = 0;
+	bool loaded = false;
+	unsigned int amount = 1000; // ¸ðµ¨ °³¼ö
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
@@ -34,4 +46,6 @@ private:
 	std::vector<glm::mat2x4> DQs;
 	glm::mat4* modelMatrices;
 	GLuint ssboHandle_t = 0;
+
+	std::vector<Instance> Instances;
 };

@@ -5,6 +5,12 @@ Model::Model(char* path)
 {
     AssimpLoader* assimpLoader = new AssimpLoader(&modelData, path);
 }
+void Model::Draw(ShaderProgram* shader)
+{
+    for (unsigned int i = 0; i < modelData.meshes.size(); i++) {
+        modelData.meshes[i].Draw(shader);
+    }
+}
 void Model::Draw(ShaderProgram* shader, int num)
 {
     for (unsigned int i = 0; i < modelData.meshes.size(); i++) {
@@ -19,52 +25,28 @@ glm::mat4 Model::CalcBoneTransform(aiAnimation* anim) {
     return matrix;
 }
 
-int Model::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms, std::vector<glm::fdualquat>& dqs)
+int Model::BoneTransform(float TimeInSeconds, std::vector<glm::fdualquat>& dqs)
 {
-    glm::mat4 Identity = glm::mat4(1.0f);
 
     //initialization
+    dqs.resize(modelData.m_NumBones);
     if (modelData.scene->mNumAnimations == 0) {
-        Transforms.resize(modelData.m_NumBones);
-        dqs.resize(modelData.m_NumBones);
-        for (unsigned int i = 0; i < modelData.m_NumBones; ++i) {
-            Transforms[i] = glm::mat4(1.0f);
+        for (unsigned int i = 0; i < modelData.m_NumBones; ++i)
             dqs[i] = modelData.IdentityDQ;
-        }
         return 0;
     }
 
     unsigned int numPosKeys = modelData.scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
-
     float TicksPerSecond = modelData.scene->mAnimations[0]->mTicksPerSecond != 0 ?
         modelData.scene->mAnimations[0]->mTicksPerSecond : 25.0f;
-
-    float TimeInTicks = TimeInSeconds * TicksPerSecond;
-
     float duration = modelData.scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
-    float AnimationTime = fmod(TimeInTicks, duration);
+    float AnimationTime = fmod(TimeInSeconds * TicksPerSecond, duration);
 
-
-
-    ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, Identity, modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
-
-    //	debugSkeletonPose(skeleton_pose);
-
-    Transforms.resize(modelData.m_NumBones);
-    dqs.resize(modelData.m_NumBones);
-
-
-    for (unsigned int i = 0; i < modelData.m_NumBones; ++i) {
-        Transforms[i] = glm::mat4(1.0f);
-        Transforms[i] = modelData.m_BoneInfo[i].FinalTransformation;
-    }
+    ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, glm::mat4(1.0f), modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
 
     for (unsigned int i = 0; i < dqs.size(); ++i) {
-        dqs[i] = modelData.IdentityDQ;
         dqs[i] = modelData.m_BoneInfo[i].FinalTransDQ;
-        //debuggingDualQuat(dqs[i]);
     }
-
 
     for (int i = 0; i < modelData.m_constraints.size(); i++) {
         if (modelData.m_constraints[i].contains(AnimationTime)) return 1;

@@ -1,15 +1,5 @@
 #include "MyGlWindow.h"
-#include <glm/glm.hpp>
 
-#include <glm/gtc/matrix_transform.hpp> // translate()
-#include <glm/gtc/type_ptr.hpp> // value_ptr()
-
-#include <glm/gtx/string_cast.hpp> // to_string()
-
-#include <vector>
-#include "Splines.h"
-
-std::vector< SplineLib::Vec2f> cps;
 void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
@@ -18,7 +8,7 @@ void MyGlWindow::setupBuffer()
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
-	directory = (char*)"assets/suit/scene.fbx";
+	directory = (char*)"assets/fast.fbx";
 	m_model = new Model(directory);
 }
 void MyGlWindow::initialize() {
@@ -37,6 +27,7 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("Material.Ks");
 	shaderProgram->addUniform("Material.Shiness");
 	shaderProgram->addUniform("viewProjection");
+	shaderProgram->addUniform("aInstanceMatrix");
 
 	/*for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
 	{
@@ -50,44 +41,6 @@ void MyGlWindow::initialize() {
 	}
 
 	/////////////////////////////////////////////
-
-	const SplineLib::Vec2f points[] =
-	{
-		{ 0.0f, 0.0f },
-		{ 7.0f, 5.0f },
-		{ 12.0f, 9.0f },
-		{ 19.0, 13.0f },
-		{ 22.0, 15.0f },
-	};
-
-	const int numPoints = sizeof(points) / sizeof(points[0]);
-
-	SplineLib::cSpline2 splines[numPoints + 1];
-
-	int numSplines = SplineLib::SplinesFromPoints(numPoints, points, numPoints + 1, splines);
-	float sumLen = 0.0f;
-
-
-	std::ofstream myfile;
-	myfile.open("example.txt");
-
-
-
-	for (int i = 0; i < 23; i++)
-	{
-		SplineLib::Vec2f qp(i, i * 16.0f / 23.0f);
-		int index;
-		float t = SplineLib::FindClosestPoint(qp, numSplines, splines, &index);
-
-		SplineLib::Vec2f cp = SplineLib::Position(splines[index], t);
-		cps.push_back(cp);
-		myfile << cp.x << " " << cp.y << std::endl;
-
-		printf("Closest point to [%6.1f, %6.1f]: index = %2d, t = %4.2f, point = [%6.1f, %6.1f]\n", qp.x, qp.y, index, t, cp.x, cp.y);
-	}
-
-
-	myfile.close();
 
 
 	modelMatrices = new glm::mat4[amount];
@@ -112,14 +65,20 @@ void MyGlWindow::initialize() {
 		float rotAngle = (rand() % 360);
 		model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 		modelMatrices[i] = model;
+
+		Instance instance;
+		instance.aInstanceMatrix = modelMatrices[i];
+		instance.AnimationOffset = rand();
+		Instances.push_back(instance);
 	}
-	shaderProgram->use();
+	/*shaderProgram->use();
 	glGenBuffers(1, &ssboHandle_t);  //transformation
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * amount, modelMatrices, GL_STATIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_t);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	shaderProgram->disable();
+	shaderProgram->disable();*/
+
 }
 MyGlWindow::MyGlWindow(int w, int h)
 {
@@ -198,56 +157,86 @@ void MyGlWindow::draw(float animationTime) {
 		float x = 5.0f * cosf(ang);
 		float z = 5.0f * sinf(ang);
 		glm::vec4 lightPos;
-		global::lightPos[j++] = view * glm::vec4(x, 5.2, z, 1.0);
+		global::lightPos[j++] = /*view * */glm::vec4(x, 5.2, z, 1.0);
 	}
 
 	glm::vec3 Ka(0.1, 0.1, 0.1);
 	glm::vec3 Kd(0.4, 0.4, 0.4);
 	glm::vec3 Ks(0.9, 0.9, 0.9);
-	GLfloat shiness = 180.0f;
+	GLfloat shiness = 0.1f;
 
-		for (int i = 0; i < 5; i++)
-		{
-			std::string name;
-			name = "Light[" + std::to_string(i) + "].Position";
-			glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
-			name = "Light[" + std::to_string(i) + "].Intensity";
-			glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
-		}
+	for (int i = 0; i < 5; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
+	}
 
-		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
+	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+	glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 
-		trans = glm::translate(_mat, glm::vec3(1.0f, 0.15f, 0));
-		rot = glm::rotate(_mat, glm::radians(0.0f), glm::vec3(1.0f, 0, 0));
-		scale = glm::scale(_mat, glm::vec3(1.0f, 1.0f, 1.0f));
-		model = trans * rot * scale;
-		mvp = projection * view * model;
-		mview = view * model;
-		imvp = glm::inverse(mview);
-		nmat = glm::mat3(glm::transpose(imvp));
-		glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
-		
-		/*float duration1 = m_model->getDuration();
+	/*trans = glm::translate(_mat, glm::vec3(1.0f, 0.15f, 0));
+	rot = glm::rotate(_mat, glm::radians(0.0f), glm::vec3(1.0f, 0, 0));
+	scale = glm::scale(_mat, glm::vec3(1.0f, 1.0f, 1.0f));
+	model = trans * rot * scale;
+	mvp = projection * view * model;
+	mview = view * model;
+	imvp = glm::inverse(mview);
+	nmat = glm::mat3(glm::transpose(imvp));*/
+	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+	glUniformMatrix4fv(shaderProgram->uniform("aInstanceMatrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	for (unsigned int i = 0; i < 31; ++i) {
+		const std::string name = "dqs[" + std::to_string(i) + "]";
+		glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(glm::mat2x4(1.0f)));
+	}
+
+	float duration1 = m_model->getDuration();
+	int size = Instances.size();
+	for (int ins = 0; ins < size; ins++)
+	{
+		glUniformMatrix4fv(shaderProgram->uniform("aInstanceMatrix"), 1, GL_FALSE, glm::value_ptr(Instances[ins].aInstanceMatrix));
 		//반복 하도록 설정
-		float TimeInTicks = animationTime * 1.0f;
+		float TimeInTicks = (animationTime+Instances[ins].AnimationOffset) * 1.0f;
 		float AnimationTime1 = fmod(TimeInTicks, duration1);  //fast
-	
-		m_model->BoneTransform(AnimationTime1, Transforms, dualQuaternions);
-		DQs.resize(dualQuaternions.size());
-		for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
-		
-			DQs[i] = glm::mat2x4_cast(dualQuaternions[i]);
-			const std::string name = "dqs[" + std::to_string(i) + "]";
-			glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(DQs[i]));
-		}*/
+		int index = (int)(AnimationTime1 * 30);
+
+		if(loaded == false) {
+			if (m_model->modelData.animationMatricesExists[index] == false) {
+				m_model->BoneTransform(AnimationTime1, dualQuaternions);
+				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+					glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
+					(m_model->modelData.animationMatrices[index]).push_back(mat);
+				}
+				m_model->modelData.animationMatricesExists[index] = true;
+				std::cout << index << std::endl;
+			}
+			std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
+			//std::vector<glm::mat2x4> animationMatrices = (m_model->modelData.animationMatrices[index]);
+			if (animationMatrices->size() > 0) {
+				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+					const std::string name = "dqs[" + std::to_string(i) + "]";
+					glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr((*animationMatrices)[i])); // 메모리가 절약된다.
+					//glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(animationMatrices[i]));
+					//glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(glm::mat2x4(1.0f)));
+				}
+			}
+		}
 
 		if (m_model) {
-			m_model->Draw(shaderProgram, amount);
+			//m_model->Draw(shaderProgram, amount);
+			m_model->Draw(shaderProgram);
 		}
-
+	}
+	if (time++ > 10) {
+		if (loaded == false) {
+			loaded = true;
+			std::cout << "loaded" << std::endl;
+		}
+	}
 	shaderProgram->disable();
 }
 void MyGlWindow::resize(int w, int h) {

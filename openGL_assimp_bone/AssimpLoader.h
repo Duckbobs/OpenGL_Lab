@@ -28,6 +28,9 @@ struct ModelData {
     glm::fdualquat IdentityDQ = glm::fdualquat(glm::quat(1.f, 0.f, 0.f, 0.f), glm::quat(0.f, 0.f, 0.f, 0.f));
     std::vector<Interval> m_constraints;
     std::map<unsigned int, glm::vec3> skeleton_pose;
+
+    bool animationMatricesExists[1000] = { true };
+    std::vector<glm::mat2x4> animationMatrices[1000];
 };
 /*struct Texture {
     unsigned int id;

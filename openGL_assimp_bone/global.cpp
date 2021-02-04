@@ -15,7 +15,7 @@ namespace global
 		glm::vec3(5, -1, 10)
 	};
 	glm::vec3 lightIntensity[5] = {
-		glm::vec3(0.0, 0.8, 0.8),
+		glm::vec3(0.1, 0.1, 0.1),
 		glm::vec3(0.0, 0.0, 0.8),
 		glm::vec3(0.8, 0.0, 0.0),
 		glm::vec3(0.0, 0.8, 0.0),

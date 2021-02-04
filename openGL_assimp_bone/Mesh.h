@@ -61,6 +61,7 @@ public:
 
     /*  ÇÔ¼ö         */
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<BoneInfo> bones, std::vector<VertexBoneData> vertexBoneData);
+    void Draw(ShaderProgram* shader);
     void Draw(ShaderProgram* shaderProgram, int num);
     //void Draw();
 

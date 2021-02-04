@@ -11,9 +11,10 @@ public:
     ModelData modelData;
     /*  ÇÔ¼ö   */
     Model(char* path);
+    void Draw(ShaderProgram* shader);
     void Draw(ShaderProgram* shader, int num);
     //void Draw();
-    int BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms, std::vector<glm::fdualquat>& dqs);
+    int BoneTransform(float TimeInSeconds, std::vector<glm::fdualquat>& dqs);
     void ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform, const glm::fdualquat& ParentDQ, glm::vec3 startpos);
     float getDuration();
 private:
