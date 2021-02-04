@@ -35,7 +35,7 @@ public:
 private:
 	int time = 0;
 	bool loaded = false;
-	unsigned int amount = 1000; // 모델 개수
+	unsigned int amount = 200; // 인스턴스 개수
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
@@ -48,4 +48,6 @@ private:
 	GLuint ssboHandle_t = 0;
 
 	std::vector<Instance> Instances;
+	std::vector<std::string> DQstrnames;
+	std::vector<const char*> DQnames;
 };

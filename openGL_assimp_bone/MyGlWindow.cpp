@@ -13,7 +13,9 @@ void MyGlWindow::setupBuffer()
 }
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
-	for (int i = 0; i < 5; i++)
+	/////////////////////////////////////////////
+	// 유니폼
+	for (int i = 0; i < 5; i++) 
 	{
 		std::string name;
 		name = "Light[" + std::to_string(i) + "].Position";
@@ -21,31 +23,42 @@ void MyGlWindow::initialize() {
 		name = "Light[" + std::to_string(i) + "].Intensity";
 		shaderProgram->addUniform(name);
 	}
-
 	shaderProgram->addUniform("Material.Ka");
 	shaderProgram->addUniform("Material.Kd");
 	shaderProgram->addUniform("Material.Ks");
 	shaderProgram->addUniform("Material.Shiness");
 	shaderProgram->addUniform("viewProjection");
 	shaderProgram->addUniform("aInstanceMatrix");
-
-	/*for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
-	{
-		std::string name = "gBones[" + std::to_string(i) + "]";
-		shaderProgram->addUniform(name.c_str());
-	}*/
 	for (unsigned int i = 0; i < m_model->modelData.m_NumBones; ++i)
 	{
-		std::string name = "dqs[" + std::to_string(i) + "]";
-		shaderProgram->addUniform(name.c_str());
+		std::string strname = ("dqs[" + std::to_string(i) + "]");
+		DQstrnames.push_back(strname);
+		shaderProgram->addUniform(DQstrnames[i].c_str());
+		//const char* name = DQstrnames[i].c_str();
+		//DQnames.push_back(name);
+		//shaderProgram->addUniform(name);
 	}
-
 	/////////////////////////////////////////////
+	// 애니메이션 dqs 생성
+	float duration1 = m_model->getDuration() * 30.0f;
+	for (float animationTime = 0; animationTime < duration1; animationTime++) {
+		int index = std::max(1, (int)(fmod(animationTime, duration1)));
+		std::cout << index << std::endl;
 
-
+		if (m_model->modelData.animationMatricesExists[index] == false) {
+			m_model->BoneTransform(index / 30.0f, dualQuaternions);
+			for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+				glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
+				(m_model->modelData.animationMatrices[index]).push_back(mat);
+			}
+			m_model->modelData.animationMatricesExists[index] = true;
+		}
+	}
+	/////////////////////////////////////////////
+	// 생성
 	modelMatrices = new glm::mat4[amount];
 	srand(clock()); // initialize random seed	
-	float radius = 200.0;
+	float radius = 10.0;
 	float offset = 100.5f;
 	for (unsigned int i = 0; i < amount; i++)
 	{
@@ -61,11 +74,11 @@ void MyGlWindow::initialize() {
 		model = glm::translate(model, glm::vec3(x, y, z));
 		float scale = .1f;
 		model = glm::scale(model, glm::vec3(scale));
-
 		float rotAngle = (rand() % 360);
 		model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 		modelMatrices[i] = model;
 
+		// 인스턴스 생성
 		Instance instance;
 		instance.aInstanceMatrix = modelMatrices[i];
 		instance.AnimationOffset = rand();
@@ -96,6 +109,7 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 	initialize();
 }
+
 const glm::mat4 _mat = glm::mat4(1.0f);
 const glm::vec3 _vec = glm::vec3(1, 1, 1);
 // 매 프레임 호출 됨
@@ -114,27 +128,12 @@ void MyGlWindow::draw(float animationTime) {
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma endregion
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
-	glm::mat4 mvp;
-	glm::mat4 mview;
-
-	glm::mat4 imvp;
-	glm::mat4 imp;
-	glm::mat3 nmat;
-
 	glm::vec3 eye = m_viewer->getViewPoint();
 	glm::vec3 look = m_viewer->getViewCenter();
 	glm::vec3 up = m_viewer->getUpVector();
-	view = lookAt(eye, look, up);
-
-	glm::mat4 trans;
-	glm::mat4 rot;
-	glm::mat4 scale;
-	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
+	glm::mat4 view = lookAt(eye, look, up);
+	glm::mat4 projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
 	
-	shaderProgram->use(); // shader 호출
 	glm::vec4 lightPos[] = {
 		glm::vec4(global::lightPos[0], 1),
 		glm::vec4(global::lightPos[1], 1),
@@ -157,7 +156,7 @@ void MyGlWindow::draw(float animationTime) {
 		float x = 5.0f * cosf(ang);
 		float z = 5.0f * sinf(ang);
 		glm::vec4 lightPos;
-		global::lightPos[j++] = /*view * */glm::vec4(x, 5.2, z, 1.0);
+		global::lightPos[j++] = glm::vec4(x, 5.2, z, 1.0);
 	}
 
 	glm::vec3 Ka(0.1, 0.1, 0.1);
@@ -165,6 +164,7 @@ void MyGlWindow::draw(float animationTime) {
 	glm::vec3 Ks(0.9, 0.9, 0.9);
 	GLfloat shiness = 0.1f;
 
+shaderProgram->use(); // shader 호출
 	for (int i = 0; i < 5; i++)
 	{
 		std::string name;
@@ -173,72 +173,35 @@ void MyGlWindow::draw(float animationTime) {
 		name = "Light[" + std::to_string(i) + "].Intensity";
 		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
 	}
-
 	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
 	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
 	glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
 	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
-
-	/*trans = glm::translate(_mat, glm::vec3(1.0f, 0.15f, 0));
-	rot = glm::rotate(_mat, glm::radians(0.0f), glm::vec3(1.0f, 0, 0));
-	scale = glm::scale(_mat, glm::vec3(1.0f, 1.0f, 1.0f));
-	model = trans * rot * scale;
-	mvp = projection * view * model;
-	mview = view * model;
-	imvp = glm::inverse(mview);
-	nmat = glm::mat3(glm::transpose(imvp));*/
 	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
-	glUniformMatrix4fv(shaderProgram->uniform("aInstanceMatrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-	for (unsigned int i = 0; i < 31; ++i) {
-		const std::string name = "dqs[" + std::to_string(i) + "]";
-		glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(glm::mat2x4(1.0f)));
-	}
 
 	float duration1 = m_model->getDuration();
 	int size = Instances.size();
+
+	// 모든 인스턴스 루프
 	for (int ins = 0; ins < size; ins++)
 	{
 		glUniformMatrix4fv(shaderProgram->uniform("aInstanceMatrix"), 1, GL_FALSE, glm::value_ptr(Instances[ins].aInstanceMatrix));
-		//반복 하도록 설정
-		float TimeInTicks = (animationTime+Instances[ins].AnimationOffset) * 1.0f;
-		float AnimationTime1 = fmod(TimeInTicks, duration1);  //fast
-		int index = (int)(AnimationTime1 * 30);
-
-		if(loaded == false) {
-			if (m_model->modelData.animationMatricesExists[index] == false) {
-				m_model->BoneTransform(AnimationTime1, dualQuaternions);
-				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
-					glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
-					(m_model->modelData.animationMatrices[index]).push_back(mat);
-				}
-				m_model->modelData.animationMatricesExists[index] = true;
-				std::cout << index << std::endl;
-			}
+		if (m_model)
+		{
+			float TimeInTicks = (animationTime + Instances[ins].AnimationOffset) * 1.0f;
+			int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * 30)); // 반복 하도록 설정
 			std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
-			//std::vector<glm::mat2x4> animationMatrices = (m_model->modelData.animationMatrices[index]);
-			if (animationMatrices->size() > 0) {
-				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
-					const std::string name = "dqs[" + std::to_string(i) + "]";
-					glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr((*animationMatrices)[i])); // 메모리가 절약된다.
-					//glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(animationMatrices[i]));
-					//glUniformMatrix2x4fv(shaderProgram->uniform(name.c_str()), 1, GL_FALSE, glm::value_ptr(glm::mat2x4(1.0f)));
-				}
+			for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
+			{
+				// dqs 유니폼 전달 ( 프레임 드랍 발생 )
+				glUniformMatrix2x4fv(shaderProgram->uniform(DQstrnames[i].c_str()), 1, GL_FALSE, glm::value_ptr((*animationMatrices)[i]));
 			}
-		}
-
-		if (m_model) {
-			//m_model->Draw(shaderProgram, amount);
 			m_model->Draw(shaderProgram);
 		}
 	}
-	if (time++ > 10) {
-		if (loaded == false) {
-			loaded = true;
-			std::cout << "loaded" << std::endl;
-		}
-	}
-	shaderProgram->disable();
+shaderProgram->disable();
 }
+
 void MyGlWindow::resize(int w, int h) {
 	width = w;
 	height = h;

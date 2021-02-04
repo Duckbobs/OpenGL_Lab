@@ -31,14 +31,14 @@ void main()
 	blendDQ += dq1 * Weights[1];
 	blendDQ += dq2 * Weights[2];
 	blendDQ += dq3 * Weights[3];
-	mat4 model2  = aInstanceMatrix;//[gl_InstanceID];
-	
 	float len = length(blendDQ[0]);
 	blendDQ /= len;
-	vec3 position = aPos.xyz + 2.0*cross(blendDQ[0].xyz, cross(blendDQ[0].xyz, aPos.xyz) + blendDQ[0].w * aPos.xyz);
 	vec3 trans = 2.0*(blendDQ[0].w * blendDQ[1].xyz - blendDQ[1].w * blendDQ[0].xyz + cross(blendDQ[0].xyz, blendDQ[1].xyz));
-	position += trans;
 
+	vec3 position = aPos.xyz + 2.0*cross(blendDQ[0].xyz, cross(blendDQ[0].xyz, aPos.xyz) + blendDQ[0].w * aPos.xyz);
+	position += trans;
+	
+	mat4 model2  = aInstanceMatrix;//[gl_InstanceID];
 	TexCoord = aTexCoord;
 	Position = vec3(model2* vec4(position, 1.0f));
 	Normal = mat3(transpose(inverse(model2))) * vertexNormal;
