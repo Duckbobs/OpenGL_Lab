@@ -35,7 +35,7 @@ public:
 private:
 	int time = 0;
 	bool loaded = false;
-	unsigned int amount = 1000; // 인스턴스 개수
+	unsigned int amount = 10; // 인스턴스 개수
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;

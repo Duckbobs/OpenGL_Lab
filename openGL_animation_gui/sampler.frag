@@ -44,7 +44,7 @@ void main()
 	}
 	fLightIntensity = ambient + fLightIntensity;
 
-    FragColor = vec4(texture2D(ourTexture, TexCoord).xyz * fLightIntensity, 1);
+    FragColor = texture2D(ourTexture, TexCoord) * vec4(fLightIntensity, 1);
 	//FragColor = vec4(fLightIntensity, 1);
 }
 

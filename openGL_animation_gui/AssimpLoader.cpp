@@ -226,7 +226,7 @@ unsigned int AssimpLoader::TextureFromFile(const char* path, const std::string& 
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, STBI_rgb);//_alpha
     if (data)
     {
         GLenum format;
@@ -239,6 +239,9 @@ unsigned int AssimpLoader::TextureFromFile(const char* path, const std::string& 
 
         // 새롭게 생성된 텍스처를 "Bind"합니다. : 이제 앞으로 모든 Texutre 관련 함수는 이 친구를 건듭니다. 
         glBindTexture(GL_TEXTURE_2D, textureID);
+
+        //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
         // 파일을 읽고, 매개 변수로 glTexImage2D를 호출
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         // 괜찮은 3중 필터링. 
@@ -247,6 +250,8 @@ unsigned int AssimpLoader::TextureFromFile(const char* path, const std::string& 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         stbi_image_free(data);
         //std::cout << filename << std::endl;

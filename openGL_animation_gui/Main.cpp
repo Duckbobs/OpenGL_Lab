@@ -6,8 +6,8 @@
 #include "MyGlWindow.h"
 
 #include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 GLFWwindow* window;
 MyGlWindow* win;
@@ -64,9 +64,10 @@ int main() {
 		glfwTerminate();
 		return -1;
 	}
+	glfwMakeContextCurrent(window); // 거대한 구조체 생성
 	//////////////////////////////////////////////////////////
 	// Setup Dear ImGui binding
-	/*IMGUI_CHECKVERSION();
+	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -75,11 +76,10 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	ImGui::StyleColorsDark();*/
+	//ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
-	//ImGui::StyleColorsLight();
+	ImGui::StyleColorsLight();
 	//////////////////////////////////////////////////////////
-	glfwMakeContextCurrent(window); // 거대한 구조체 생성
 
 
 
@@ -134,11 +134,11 @@ int main() {
 		// | imgui																		  |
 		// @------------------------------------------------------------------------------@
 		// Start the Dear ImGui frame
-		/*ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		//adding widgets here
-		ImGui::ShowDemoWindow(&show_test_window);*/
+		ImGui::ShowDemoWindow(&show_test_window);
 
 
 		//////////////////////////////////////////////////////////
@@ -147,8 +147,8 @@ int main() {
 
 		win->draw(animationTime); // 매번 호출
 
-		/*ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
 
@@ -162,9 +162,9 @@ int main() {
 	// @------------------------------------------------------------------------------@
 	// | Terminate																	  |
 	// @------------------------------------------------------------------------------@
-	/*ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();*/
+	ImGui::DestroyContext();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

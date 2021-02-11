@@ -61,7 +61,7 @@ void MyGlWindow::initialize() {
 	// »ý¼º
 	modelMatrices = new glm::mat4[amount];
 	srand(clock()); // initialize random seed	
-	float radius = 100.0;
+	float radius = 10.0;
 	float offset = 100.5f;
 	for (unsigned int i = 0; i < amount; i++)
 	{
