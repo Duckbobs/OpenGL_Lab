@@ -4,13 +4,12 @@
 #include "Viewer.h"
 #include <vector>
 #include "global.h"
-
 #include "Model.h"
-
 #include <glm/gtc/matrix_transform.hpp> // translate()
 #include <glm/gtc/type_ptr.hpp> // value_ptr()
-
 #include <glm/gtx/string_cast.hpp> // to_string()
+
+#include "Gui.h"
 
 struct Instance {
 	float AnimationOffset;
@@ -35,7 +34,7 @@ public:
 private:
 	int time = 0;
 	bool loaded = false;
-	unsigned int amount = 50000; // 인스턴스 개수
+	unsigned int amount = 100; // 인스턴스 개수
 	ShaderProgram* shaderProgram;
 	int width;
 	int height;
