@@ -1,9 +1,40 @@
 #include "MyGlWindow.h"
 
+// TODO
+/*
+	# 그림자
+
+	float constant;
+	float linear;
+	float quadratic;
+	# 거리 값 추가
+
+	# 거리값 자동 계산, 샘플
+
+	# gui 빛 조정
+
+	# trans rotate scale 조절 ui
+
+	# 라이트 보완 https://heinleinsgame.tistory.com/19?category=757483
+	# gui 라이트 성능 조절
+
+	# 멀티 쉐이더
+	# 멀티 라이팅
+
+	# 머터리얼 샘플
+*/
+
+
+
+
+
 void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
 	shaderProgram->initFromFiles("sampler.vert", "sampler.frag"); // 쉐이더 지정
+
+	shaderProgram_plane = new ShaderProgram();
+	shaderProgram_plane->initFromFiles("plane.vert", "plane.frag"); // 쉐이더 지정
 
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
@@ -12,14 +43,17 @@ void MyGlWindow::setupBuffer()
 	//directory = (char*)"assets/fast.fbx";
 	//directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
+	m_plane = new Plane(1000.0f, 1000.0f, 20, 20);
 }
 
 float INDEX_PER_FRAME = 30.0f;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
+
+
 	/////////////////////////////////////////////
 	// 유니폼
-	for (int i = 0; i < 5; i++) 
+	for (int i = 0; i < 1; i++) 
 	{
 		std::string name;
 		name = "Light[" + std::to_string(i) + "].Position";
@@ -33,6 +67,21 @@ void MyGlWindow::initialize() {
 	shaderProgram->addUniform("Material.Shiness");
 	shaderProgram->addUniform("viewProjection");
 	shaderProgram->addUniform("dqsize");
+	/////////////////////////////////////////////
+	// 유니폼
+	for (int i = 0; i < 1; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		shaderProgram_plane->addUniform(name);
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		shaderProgram_plane->addUniform(name);
+	}
+	shaderProgram_plane->addUniform("Material.Ka");
+	shaderProgram_plane->addUniform("Material.Kd");
+	shaderProgram_plane->addUniform("Material.Ks");
+	shaderProgram_plane->addUniform("Material.Shiness");
+	shaderProgram_plane->addUniform("viewProjection");
 
 	// 애니메이션 dqs 생성
 	float duration1 = m_model->getDuration() * INDEX_PER_FRAME;
@@ -154,12 +203,35 @@ void MyGlWindow::draw(float animationTime) {
 	}
 
 	glm::vec3 Ka(0.5, 0.5, 0.5);
-	glm::vec3 Kd(0.9, 0.9, 0.9);
-	glm::vec3 Ks(0.2, 0.2, 0.2);
-	GLfloat shiness = 0.1f;
+	glm::vec3 Kd(0.1, 0.1, 0.1);
+	glm::vec3 Ks(0.01, 0.01, 0.01);
+	GLfloat shiness = 1.0f;
+
+
+
+shaderProgram_plane->use();
+	for (int i = 0; i < 1; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		glUniform4fv(shaderProgram_plane->uniform(name), 1, glm::value_ptr(lightPos[i]));
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		glUniform3fv(shaderProgram_plane->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
+	}
+	glUniform3fv(shaderProgram_plane->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+	glUniform3fv(shaderProgram_plane->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+	glUniform3fv(shaderProgram_plane->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+	glUniform1fv(shaderProgram_plane->uniform("Material.Shiness"), 1, &shiness);
+	glUniformMatrix4fv(shaderProgram_plane->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+	if (m_plane)
+	{
+		m_plane->draw();
+	}
+shaderProgram_plane->disable();
+
 
 shaderProgram->use(); // shader 호출
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		std::string name;
 		name = "Light[" + std::to_string(i) + "].Position";
@@ -173,10 +245,10 @@ shaderProgram->use(); // shader 호출
 	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 
-// 0.03초 = 빠르다는 느낌
-// 0.06초 = 빠르다는 느낌
-// 0.1초 = 느려지고 있다고 느낌
-// 0.2초 = 느리다고 느낌
+	// 0.03초 = 빠르다는 느낌
+	// 0.06초 = 빠르다는 느낌
+	// 0.1초 = 느려지고 있다고 느낌
+	// 0.2초 = 느리다고 느낌
 	{
 		ImGui::Begin("Window");
 		ImGui::SliderInt("Amount###SliderInt", &amount, 0, max_amount);
@@ -216,6 +288,7 @@ shaderProgram->use(); // shader 호출
 	}
 shaderProgram->disable();
 delete[] modelMatrices;
+
 }
 
 void MyGlWindow::resize(int w, int h) {

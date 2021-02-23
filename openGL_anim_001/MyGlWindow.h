@@ -5,6 +5,7 @@
 #include <vector>
 #include "global.h"
 #include "Model.h"
+#include "Plane.h"
 #include <glm/gtc/matrix_transform.hpp> // translate()
 #include <glm/gtc/type_ptr.hpp> // value_ptr()
 #include <glm/gtx/string_cast.hpp> // to_string()
@@ -33,11 +34,13 @@ public:
 
 	Viewer* m_viewer;
 	Model* m_model;
+	Plane* m_plane;
 
 private:
 	int time = 0;
 	bool loaded = false;
 	ShaderProgram* shaderProgram;
+	ShaderProgram* shaderProgram_plane;
 	int width;
 	int height;
 	void setupBuffer();

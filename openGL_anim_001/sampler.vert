@@ -54,8 +54,8 @@ void main()
 
 	// out
 	Position = vec3(model2 * vec4(position, 1.0f));
-    Normal = vertexNormal;
-	//Normal = mat3(transpose((model2))) * vertexNormal;
+    //Normal = vertexNormal;
+	Normal = mat3(transpose(inverse(model2))) * vertexNormal;
 	TexCoord = aTexCoord;
 	gl_Position = viewProjection * model2 * vec4(position, 1.0f);
 }

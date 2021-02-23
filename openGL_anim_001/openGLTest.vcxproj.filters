@@ -87,6 +87,9 @@
     <ClInclude Include="Gui.h">
       <Filter>헤더 파일\Gui</Filter>
     </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>헤더 파일\AssimpLoader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -137,12 +140,21 @@
     <ClCompile Include="Gui.cpp">
       <Filter>소스 파일\Gui</Filter>
     </ClCompile>
+    <ClCompile Include="Plane.cpp">
+      <Filter>소스 파일\AssimpLoader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sampler.frag">
       <Filter>Shader</Filter>
     </None>
     <None Include="sampler.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="plane.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="plane.vert">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
