@@ -125,6 +125,10 @@ void MyGlWindow::initialize() {
 		Instance instance;
 		instance.aInstanceMatrix = model;
 		instance.AnimationOffset = rand();
+		instance.Position = glm::vec3(x, y, z);
+		instance.Rotation = glm::vec3(0.0f, 1.0f, 0.0f);
+		instance.Scale = glm::vec3(0.1f);
+
 		Instances.push_back(instance);
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];

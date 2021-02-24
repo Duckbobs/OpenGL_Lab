@@ -9,12 +9,16 @@
 #include <glm/gtc/matrix_transform.hpp> // translate()
 #include <glm/gtc/type_ptr.hpp> // value_ptr()
 #include <glm/gtx/string_cast.hpp> // to_string()
-
+#include "time.h"
 #include "Gui.h"
 
 struct Instance {
 	float AnimationOffset;
 	glm::mat4 aInstanceMatrix;
+	glm::vec3 Position;
+	glm::vec3 Rotation;
+	glm::vec3 Scale;
+
 };
 
 class MyGlWindow {
