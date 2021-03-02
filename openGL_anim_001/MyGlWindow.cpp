@@ -105,7 +105,6 @@ void MyGlWindow::initialize() {
 	float offset = 100.5f;
 	for (unsigned int i = 0; i < max_amount; i++)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
 		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
 		float angle = (float)i / (float)max_amount * 360.0f;
 		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
@@ -114,21 +113,18 @@ void MyGlWindow::initialize() {
 		float y = 0; // keep height of field smaller compared to width of x and z
 		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
 		float z = cos(angle) * radius + displacement;
-		model = glm::translate(model, glm::vec3(x, y, z));
+
 		float scale = .1f;
-		model = glm::scale(model, glm::vec3(scale));
 		float rotAngle = (rand() % 360);
-		model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-		//modelMatrices[i] = model;
 
 		// 인스턴스 생성
 		Instance instance;
-		instance.aInstanceMatrix = model;
-		instance.AnimationOffset = rand();
-		instance.Position = glm::vec3(x, y, z);
-		instance.Rotation = glm::vec3(0.0f, 1.0f, 0.0f);
-		instance.Scale = glm::vec3(0.1f);
+		instance.setAnimationOffset(rand());
+		instance.setPosition(glm::vec3(x, y, z));
+		instance.setRotation(glm::vec3(0.0f, rotAngle, 0.0f));
+		instance.setScale(glm::vec3(0.1f));
 
+		instance.setVelocity(glm::vec3((rand() % 10) / 10.0f, 0.0f, (rand() % 10) / 10.0f));
 		Instances.push_back(instance);
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
@@ -264,7 +260,22 @@ shaderProgram->use(); // shader 호출
 
 	for (int ins = 0; ins < size; ins++)
 	{
-		float TimeInTicks = (animationTime + Instances[ins].AnimationOffset) * 1.0f;
+		// 물리 업데이트 ( Velocity )
+		Instances[ins].Update();
+// TODO // Steering 구현, Rotation 방향으로 천천히 y 각도 틀게
+		float direction = Instances[ins].getRotation().y;
+
+
+
+// TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
+		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
+		if (Instances[ins].updateMatrix()) {
+
+		}
+
+
+		// 애니메이션 업데이트
+		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * 1.0f;
 		int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
 		std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
 		for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
@@ -280,7 +291,7 @@ shaderProgram->use(); // shader 호출
 	modelMatrices = new glm::mat4[size];
 	for (int ins = 0; ins < size; ins++)
 	{
-		modelMatrices[ins] = Instances[ins].aInstanceMatrix;
+		modelMatrices[ins] = Instances[ins].getInstanceMatrix();
 	}
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_ins);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * size, modelMatrices, GL_STATIC_DRAW);

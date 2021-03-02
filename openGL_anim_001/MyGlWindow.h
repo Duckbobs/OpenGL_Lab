@@ -11,20 +11,12 @@
 #include <glm/gtx/string_cast.hpp> // to_string()
 #include "time.h"
 #include "Gui.h"
-
-struct Instance {
-	float AnimationOffset;
-	glm::mat4 aInstanceMatrix;
-	glm::vec3 Position;
-	glm::vec3 Rotation;
-	glm::vec3 Scale;
-
-};
+#include "Instance.h"
 
 class MyGlWindow {
 public:
 	int max_amount = 50000; // 최대 인스턴스 개수
-	int amount = 10000; // 인스턴스 개수
+	int amount = 1000; // 인스턴스 개수
 
 	MyGlWindow(int w, int h);
 	void resize(int w, int h);
