@@ -10,6 +10,7 @@ struct Instance {
 public:
 	float getAnimationOffset();
 	glm::vec3 getRotation();
+	glm::vec3 getVelocity();
 public:
 	glm::mat4 getInstanceMatrix();
 	void setAnimationOffset(float offset);

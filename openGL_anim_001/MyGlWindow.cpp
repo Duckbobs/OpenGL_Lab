@@ -1,5 +1,17 @@
 #include "MyGlWindow.h"
 
+#define PI = 3.14159265
+double rad2deg(double radian);
+double deg2rad(double degree);
+double rad2deg(double radian)
+{
+	return radian * 180 / PI;
+}
+double deg2rad(double degree)
+{
+	return degree * PI / 180;
+}
+
 // TODO
 /*
 	# 그림자
@@ -263,14 +275,21 @@ shaderProgram->use(); // shader 호출
 		// 물리 업데이트 ( Velocity )
 		Instances[ins].Update();
 // TODO // Steering 구현, Rotation 방향으로 천천히 y 각도 틀게
+// TODO // direction speed 로 구성할지, 목적지 좌표를 통해 계산할지
 		float direction = Instances[ins].getRotation().y;
-
+		direction += 0.1f;
+		glm::vec3 A = Instances[ins].getVelocity();
+		glm::vec3 B = glm::vec3(0, 0, 1);
+		//현재 벡터 : A, 기준 벡터 : B
+		float Dot = glm::dot(A, B);
+		float Angle = rad2deg(glm::acos(Dot));
+		Instances[ins].setRotation(glm::vec3(0, Angle, 0));
 
 
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
 		if (Instances[ins].updateMatrix()) {
-
+			
 		}
 
 

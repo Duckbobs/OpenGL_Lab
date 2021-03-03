@@ -1,11 +1,5 @@
 #include "Instance.h"
 
-#define TODEG(x) (x * (180.f / PI))
-#define TORAD(x) (x * (PI / 180.f))
-
-
-
-
 
 void Instance::setAnimationOffset(float offset) {
 	AnimationOffset = offset;
@@ -32,6 +26,9 @@ void Instance::setVelocity(glm::vec3 vec) {
 
 glm::vec3 Instance::getRotation() {
 	return Rotation;
+}
+glm::vec3 Instance::getVelocity() {
+	return Velocity;
 }
 float Instance::getAnimationOffset() {
 	return AnimationOffset;

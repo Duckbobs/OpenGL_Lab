@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Loader.h"
 #include "Viewer.h"
 #include <vector>
