@@ -13,10 +13,21 @@ float getSign(float x) {
 	if (x < 0) return -1;
 	return 0;
 }
-glm::vec3 angle2normal(float angle) {
-	glm::vec3 velocity = glm::vec3(0, 1, 1) * glm::rotate(glm::mat3(1.0f), angle);
+glm::vec3 rad2normal(float rad) {
+	glm::vec3 velocity = glm::vec3(0, 1, 1) * glm::rotate(glm::mat3(1.0f), rad);
 	velocity = glm::vec3(velocity.x, 0, velocity.y);
 	return glm::normalize(velocity);
+}
+
+float angle_difference(int a, int b) {
+	// 두 각도의 차이를 -180~180 사이의 값으로 반환
+	int d = std::abs(a - b) % 360; 
+	int r = ( d > 180 ) ? 360 - d : d;
+
+	//calculate sign 
+	int sign = (a - b >= 0 && a - b <= 180) || (a - b <= -180 && a - b >= -360) ? 1 : -1;
+	r *= sign;
+	return r;
 }
 // TODO
 /*
@@ -147,7 +158,7 @@ void MyGlWindow::initialize() {
 		instance.setRotation(glm::vec3(0.0f, rotAngle, 0.0f));
 		instance.setScale(glm::vec3(0.1f));
 
-		instance.setVelocity(angle2normal(rotAngle));
+		instance.setVelocity(rad2normal(deg2rad(rotAngle)));
 		Instances.push_back(instance);
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
@@ -175,6 +186,8 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 	initialize();
 }
+
+glm::vec3 Dest = glm::vec3(-1000, 0, 100);
 glm::mat4 view;
 glm::mat4 projection;
 const glm::mat4 _mat = glm::mat4(1.0f);
@@ -286,11 +299,19 @@ shaderProgram->use(); // shader 호출
 		mat4 modelMatrix = mat4_cast(qRot);
 		ImGui::End();
 	}
+	{
+		ImGui::Begin("Window");
+		ImGui::InputFloat("x###InputFloatX", &Dest[0]);
+		ImGui::InputFloat("y###InputFloatY", &Dest[1]);
+		ImGui::InputFloat("z###InputFloatZ", &Dest[2]);
+		ImGui::End();
+	}
 
 	float duration1 = m_model->getDuration();
 	int size = amount;
 
-	glm::vec3 Dest = glm::vec3(-1000, 0, 100);
+	float diff;
+	float angleSpeed = 10;
 	glm::mat3 mat = glm::mat3(1.0f);
 	for (int ins = 0; ins < size; ins++)
 	{
@@ -299,34 +320,30 @@ shaderProgram->use(); // shader 호출
 		glm::vec3 oldVelocity = Instances[ins].getVelocity();
 		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
 // Steering Rotation
-		float oldAngle = atan2f(oldVelocity.x, oldVelocity.z);
-		float destAngle = atan2f(destDir.x, destDir.z);
-		float newAngle = oldAngle;
-		if (newAngle < destAngle) {
-			newAngle += 0.05f;
-		}
-		else {
-			newAngle -= 0.05f;
-		}
-		/*if (360 - newAngle < newAngle) {
-			if (newAngle > destAngle) {
-				newAngle -= 0.1f;
-				if (newAngle < 0) {
-					newAngle = 360;
+		float oldRadian = atan2f(oldVelocity.x, oldVelocity.z);
+		float destRadian = atan2f(destDir.x, destDir.z);
+		float newRadian = oldRadian;
+
+		if (oldRadian != destRadian) {
+			diff = angle_difference(rad2deg(newRadian), rad2deg(destRadian));
+			if (std::abs(diff) < angleSpeed) {
+				newRadian = destRadian;
+			}
+			else {
+				if (diff < 0) {
+					newRadian = deg2rad(rad2deg(newRadian) + angleSpeed);
+				}
+				else {
+					newRadian = deg2rad(rad2deg(newRadian) - angleSpeed);
 				}
 			}
+			// Update
+			Instances[ins].setVelocity(rad2normal(newRadian));
+			Instances[ins].setRotation(glm::vec3(0, newRadian, 0));
 		}
 		else {
-			if (newAngle < destAngle) {
-				newAngle += 0.1f;
-				if (newAngle > 360) {
-					newAngle = 0;
-				}
-			}
-		}*/
-		// Update
-		Instances[ins].setVelocity(angle2normal(newAngle));
-		Instances[ins].setRotation(glm::vec3(0, newAngle, 0));
+			// 변화 X
+		}
 
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
