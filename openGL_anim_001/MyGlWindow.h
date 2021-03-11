@@ -11,11 +11,14 @@
 #include "time.h"
 #include "Gui.h"
 #include "Instance.h"
+#include "glm/gtx/matrix_transform_2d.hpp"
+#include "imGuIZMOquat.h"
+#include "Line.h"
 
 class MyGlWindow {
 public:
 	int max_amount = 50000; // 최대 인스턴스 개수
-	int amount = 1000; // 인스턴스 개수
+	int amount = 1; // 인스턴스 개수
 
 	MyGlWindow(int w, int h);
 	void resize(int w, int h);
@@ -30,12 +33,18 @@ public:
 	Viewer* m_viewer;
 	Model* m_model;
 	Plane* m_plane;
+	Line* m_line;
 
+	int getW() { return width; }
+	int getH() { return height; }
+	void mouse_button_click(double xpos, double ypos);
+	glm::vec3 mouse_ray;
 private:
 	int time = 0;
 	bool loaded = false;
 	ShaderProgram* shaderProgram;
 	ShaderProgram* shaderProgram_plane;
+	ShaderProgram* shaderProgram_gizmo;
 	int width;
 	int height;
 	void setupBuffer();

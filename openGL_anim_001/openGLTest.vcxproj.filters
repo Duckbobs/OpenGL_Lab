@@ -31,6 +31,12 @@
     <Filter Include="소스 파일\Instance">
       <UniqueIdentifier>{ce38c37a-c777-4d20-ad70-e894bb18759a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Gui\Gizmo">
+      <UniqueIdentifier>{31be03bb-2f3c-4dde-a51b-007c79775b8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Gui\Gizmo">
+      <UniqueIdentifier>{70a55bb3-9eff-41a7-8b2d-bfea68527360}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">
@@ -93,6 +99,21 @@
     <ClInclude Include="Instance.h">
       <Filter>헤더 파일\Instance</Filter>
     </ClInclude>
+    <ClInclude Include="include\imGuIZMO.quat\imGuIZMOquat.h">
+      <Filter>헤더 파일\Gui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imGuIZMO.quat\vGizmo.h">
+      <Filter>헤더 파일\Gui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imGuIZMO.quat\vGizmoMath.h">
+      <Filter>헤더 파일\Gui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imGuIZMO.quat\vgMath.h">
+      <Filter>헤더 파일\Gui\Gizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Line.h">
+      <Filter>헤더 파일\Instance</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -149,6 +170,12 @@
     <ClCompile Include="Instance.cpp">
       <Filter>소스 파일\Instance</Filter>
     </ClCompile>
+    <ClCompile Include="include\imGuIZMO.quat\imGuIZMOquat.cpp">
+      <Filter>소스 파일\Gui\Gizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Line.cpp">
+      <Filter>소스 파일\Instance</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sampler.frag">
@@ -161,6 +188,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="plane.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="gizmo.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="gizmo.vert">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

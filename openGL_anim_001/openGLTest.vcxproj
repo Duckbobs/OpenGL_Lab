@@ -21,6 +21,10 @@
   <ItemGroup>
     <ClInclude Include="AssimpLoader.h" />
     <ClInclude Include="global.h" />
+    <ClInclude Include="include\imGuIZMO.quat\imGuIZMOquat.h" />
+    <ClInclude Include="include\imGuIZMO.quat\vGizmo.h" />
+    <ClInclude Include="include\imGuIZMO.quat\vGizmoMath.h" />
+    <ClInclude Include="include\imGuIZMO.quat\vgMath.h" />
     <ClInclude Include="include\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="include\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
@@ -31,6 +35,7 @@
     <ClInclude Include="include\imgui\imstb_truetype.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Interval.h" />
+    <ClInclude Include="Line.h" />
     <ClInclude Include="Loader.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
@@ -43,6 +48,7 @@
   <ItemGroup>
     <ClCompile Include="AssimpLoader.cpp" />
     <ClCompile Include="global.cpp" />
+    <ClCompile Include="include\imGuIZMO.quat\imGuIZMOquat.cpp" />
     <ClCompile Include="include\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="include\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="include\imgui\imgui.cpp" />
@@ -52,6 +58,7 @@
     <ClCompile Include="include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="Interval.cpp" />
+    <ClCompile Include="Line.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -61,6 +68,8 @@
     <ClCompile Include="Gui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="gizmo.frag" />
+    <None Include="gizmo.vert" />
     <None Include="plane.frag" />
     <None Include="plane.vert" />
     <None Include="sampler.frag" />
@@ -136,7 +145,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/imGuIZMO.quat;./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,7 +162,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/imGuIZMO.quat;./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,7 +179,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/imGuIZMO.quat;./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -187,7 +196,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/imGuIZMO.quat;./include/imgui;./include/imgui/backends;./include/glm;./include/stb;./include/glfw/include;./include/glew/include;./include/assimp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

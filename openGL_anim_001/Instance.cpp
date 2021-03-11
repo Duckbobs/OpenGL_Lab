@@ -24,6 +24,9 @@ void Instance::setVelocity(glm::vec3 vec) {
 }
 
 
+glm::vec3 Instance::getPosition() {
+	return Position;
+}
 glm::vec3 Instance::getRotation() {
 	return Rotation;
 }

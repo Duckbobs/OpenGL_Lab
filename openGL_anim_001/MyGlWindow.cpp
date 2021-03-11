@@ -1,17 +1,23 @@
 #include "MyGlWindow.h"
 
-#define PI = 3.14159265
-double rad2deg(double radian);
-double deg2rad(double degree);
-double rad2deg(double radian)
+float rad2deg(double radian)
 {
-	return radian * 180 / PI;
+	return radian * 180 / 3.141592;
 }
-double deg2rad(double degree)
+float deg2rad(double degree)
 {
-	return degree * PI / 180;
+	return degree * 3.141592 / 180;
 }
-
+float getSign(float x) {
+	if (x > 0) return 1;
+	if (x < 0) return -1;
+	return 0;
+}
+glm::vec3 angle2normal(float angle) {
+	glm::vec3 velocity = glm::vec3(0, 1, 1) * glm::rotate(glm::mat3(1.0f), angle);
+	velocity = glm::vec3(velocity.x, 0, velocity.y);
+	return glm::normalize(velocity);
+}
 // TODO
 /*
 	# 그림자
@@ -48,6 +54,9 @@ void MyGlWindow::setupBuffer()
 	shaderProgram_plane = new ShaderProgram();
 	shaderProgram_plane->initFromFiles("plane.vert", "plane.frag"); // 쉐이더 지정
 
+	shaderProgram_gizmo = new ShaderProgram();
+	shaderProgram_gizmo->initFromFiles("gizmo.vert", "gizmo.frag"); // 쉐이더 지정
+
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
@@ -56,12 +65,14 @@ void MyGlWindow::setupBuffer()
 	//directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
 	m_plane = new Plane(1000.0f, 1000.0f, 20, 20);
+	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
 float INDEX_PER_FRAME = 30.0f;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
 
+	shaderProgram_gizmo->addUniform("mvp");
 
 	/////////////////////////////////////////////
 	// 유니폼
@@ -136,7 +147,7 @@ void MyGlWindow::initialize() {
 		instance.setRotation(glm::vec3(0.0f, rotAngle, 0.0f));
 		instance.setScale(glm::vec3(0.1f));
 
-		instance.setVelocity(glm::vec3((rand() % 10) / 10.0f, 0.0f, (rand() % 10) / 10.0f));
+		instance.setVelocity(angle2normal(rotAngle));
 		Instances.push_back(instance);
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
@@ -164,7 +175,8 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 	initialize();
 }
-
+glm::mat4 view;
+glm::mat4 projection;
 const glm::mat4 _mat = glm::mat4(1.0f);
 const glm::vec3 _vec = glm::vec3(1, 1, 1);
 // 매 프레임 호출 됨
@@ -186,8 +198,8 @@ void MyGlWindow::draw(float animationTime) {
 	glm::vec3 eye = m_viewer->getViewPoint();
 	glm::vec3 look = m_viewer->getViewCenter();
 	glm::vec3 up = m_viewer->getUpVector();
-	glm::mat4 view = lookAt(eye, look, up);
-	glm::mat4 projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
+	view = lookAt(eye, look, up);
+	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
 	
 	glm::vec4 lightPos[] = {
 		glm::vec4(global::lightPos[0], 1),
@@ -267,24 +279,54 @@ shaderProgram->use(); // shader 호출
 		ImGui::End();
 	}
 
+	{
+		ImGui::Begin("Window");
+		vgm::Quat qRot = vgm::Quat(1.f, 0.f, 0.f, 0.f);
+		ImGui::gizmo3D("##gizmo1", qRot /*, size,  mode */);
+		mat4 modelMatrix = mat4_cast(qRot);
+		ImGui::End();
+	}
+
 	float duration1 = m_model->getDuration();
 	int size = amount;
 
+	glm::vec3 Dest = glm::vec3(-1000, 0, 100);
+	glm::mat3 mat = glm::mat3(1.0f);
 	for (int ins = 0; ins < size; ins++)
 	{
 		// 물리 업데이트 ( Velocity )
 		Instances[ins].Update();
-// TODO // Steering 구현, Rotation 방향으로 천천히 y 각도 틀게
-// TODO // direction speed 로 구성할지, 목적지 좌표를 통해 계산할지
-		float direction = Instances[ins].getRotation().y;
-		direction += 0.1f;
-		glm::vec3 A = Instances[ins].getVelocity();
-		glm::vec3 B = glm::vec3(0, 0, 1);
-		//현재 벡터 : A, 기준 벡터 : B
-		float Dot = glm::dot(A, B);
-		float Angle = rad2deg(glm::acos(Dot));
-		Instances[ins].setRotation(glm::vec3(0, Angle, 0));
-
+		glm::vec3 oldVelocity = Instances[ins].getVelocity();
+		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
+// Steering Rotation
+		float oldAngle = atan2f(oldVelocity.x, oldVelocity.z);
+		float destAngle = atan2f(destDir.x, destDir.z);
+		float newAngle = oldAngle;
+		if (newAngle < destAngle) {
+			newAngle += 0.05f;
+		}
+		else {
+			newAngle -= 0.05f;
+		}
+		/*if (360 - newAngle < newAngle) {
+			if (newAngle > destAngle) {
+				newAngle -= 0.1f;
+				if (newAngle < 0) {
+					newAngle = 360;
+				}
+			}
+		}
+		else {
+			if (newAngle < destAngle) {
+				newAngle += 0.1f;
+				if (newAngle > 360) {
+					newAngle = 0;
+				}
+			}
+		}*/
+		// Update
+		Instances[ins].setVelocity(angle2normal(newAngle));
+		Instances[ins].setRotation(glm::vec3(0, newAngle, 0));
 
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
@@ -320,9 +362,18 @@ shaderProgram->use(); // shader 호출
 	{
 		m_model->Draw(shaderProgram, size);
 	}
+
 shaderProgram->disable();
 delete[] modelMatrices;
 
+shaderProgram_gizmo->use();
+	glUniformMatrix4fv(shaderProgram_gizmo->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f) * projection * view));
+
+	if (m_line)
+	{
+		m_line->draw();
+	}
+shaderProgram_gizmo->disable();
 }
 
 void MyGlWindow::resize(int w, int h) {
@@ -367,4 +418,18 @@ glm::mat4 MyGlWindow::perspective(float fov, float aspect, float n, float f)
 	P[3] = glm::vec4(0, 0, B, 0.0f);
 
 	return P;
+}
+void MyGlWindow::mouse_button_click(double xpos, double ypos) {
+	float x = (2.0f * xpos) / width - 1.0f;
+	float y = 1.0f - (2.0f * ypos) / height;
+	float z = 1.0f;
+	glm::vec3 ray_nds = glm::vec3(x, y, z);
+	glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds.x, ray_nds.y), -1.0, 1.0);
+	glm::vec4 ray_eye = glm::inverse(projection) * ray_clip;
+	ray_eye = glm::vec4(glm::vec2(ray_eye.x, ray_eye.y), -1.0, 0.0);
+	glm::vec3 ray_wor = glm::vec3(inverse(view) * ray_eye);
+	// don't forget to normalise the vector at some point
+	ray_wor = glm::normalize(ray_wor);
+	mouse_ray = ray_wor;
+	//std::cout << glm::to_string(ray_wor) << std::endl;
 }

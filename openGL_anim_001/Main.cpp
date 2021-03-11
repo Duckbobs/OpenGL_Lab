@@ -204,11 +204,13 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (action == GLFW_PRESS) {
-		//std::cout << "GLFW_PRESS" << std::endl;
+		std::cout << "GLFW_PRESS" << std::endl;
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		m_lastMouseX = xpos;
 		m_lastMouseY = ypos;
+
+		win->mouse_button_click(xpos, ypos);
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
