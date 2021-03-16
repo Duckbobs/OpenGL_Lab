@@ -397,6 +397,114 @@ public:
 		return uniformMap[uniformName];
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// Compute Shader //////////////////////////////////////////////////
+	std::string readFile(const char* fileName)
+	{
+		std::string fileContent;
+		std::ifstream fileStream(fileName, std::ios::in);
+		if (!fileStream.is_open()) {
+			printf("File %s not found\n", fileName);
+			return "";
+		}
+		std::string line = "";
+		while (!fileStream.eof()) {
+			std::getline(fileStream, line);
+			fileContent.append(line + "\n");
+		}
+		fileStream.close();
+		return fileContent;
+	}
+
+	void printProgramLog(GLuint program)
+	{
+		GLint result = GL_FALSE;
+		int logLength;
+
+		glGetProgramiv(program, GL_LINK_STATUS, &result);
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar* strInfoLog = new GLchar[logLength + 1];
+			glGetProgramInfoLog(program, logLength, NULL, strInfoLog);
+			printf("programlog: %s\n", strInfoLog);
+		};
+	}
+
+	void printShaderLog(GLuint shader)
+	{
+		GLint result = GL_FALSE;
+		int logLength;
+
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0) {
+			GLchar* strInfoLog = new GLchar[logLength + 1];
+			glGetShaderInfoLog(shader, logLength, NULL, strInfoLog);
+			printf("shaderlog: %s\n", strInfoLog);
+		};
+	}
+
+	GLuint loadComputeShader(const char* computeShaderFile)
+	{
+
+		GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
+
+		// Read shaders
+		std::string computeShaderStr = readFile(computeShaderFile);
+		const char* computeShaderSrc = computeShaderStr.c_str();
+
+		GLint result = GL_FALSE;
+
+		std::cout << "Compiling compute shader." << std::endl;
+		glShaderSource(computeShader, 1, &computeShaderSrc, NULL);
+		glCompileShader(computeShader);
+
+		printShaderLog(computeShader);
+
+		std::cout << "Linking program" << std::endl;
+		GLuint program = glCreateProgram();
+		glAttachShader(program, computeShader);
+		glLinkProgram(program);
+		printProgramLog(program);
+
+		glDeleteShader(computeShader);
+
+		initialised = true;
+
+		return program;
+	}
+	// Compute Shader //////////////////////////////////////////////////
+
 	// Uniform 유틸리티 함수들
 	void setBool(const std::string& name, bool value) const
 	{

@@ -39,12 +39,15 @@ public:
 	int getH() { return height; }
 	void mouse_button_click(double xpos, double ypos);
 	glm::vec3 mouse_ray;
+	std::vector<GLfloat> initPos;
 private:
 	int time = 0;
 	bool loaded = false;
 	ShaderProgram* shaderProgram;
 	ShaderProgram* shaderProgram_plane;
 	ShaderProgram* shaderProgram_gizmo;
+	ShaderProgram* computeShaderProgram_test;
+
 	int width;
 	int height;
 	void setupBuffer();
@@ -58,7 +61,8 @@ private:
 
 	GLuint ssboHandle_t = 0;
 	GLuint ssboHandle_ins = 1;
-	GLuint ssboHandle_offset = 2;
+
+	GLuint ssboHandle_compute_test = 0;
 
 	std::vector<Instance> Instances;
 	std::vector<std::string> DQstrnames;

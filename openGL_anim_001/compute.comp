@@ -1,0 +1,11 @@
+#version 450 core
+
+layout(local_size_x = 1) in;
+
+layout(binding = 0) coherent buffer ssbo1 {
+    float Position[];
+};
+
+void main(){
+    Position[gl_LocalInvocationID.x] *= 2.0f;
+}

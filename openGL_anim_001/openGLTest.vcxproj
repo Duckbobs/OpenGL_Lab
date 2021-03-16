@@ -68,6 +68,7 @@
     <ClCompile Include="Gui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="compute.comp" />
     <None Include="gizmo.frag" />
     <None Include="gizmo.vert" />
     <None Include="plane.frag" />

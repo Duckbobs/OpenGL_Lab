@@ -68,6 +68,10 @@ void MyGlWindow::setupBuffer()
 	shaderProgram_gizmo = new ShaderProgram();
 	shaderProgram_gizmo->initFromFiles("gizmo.vert", "gizmo.frag"); // 쉐이더 지정
 
+	//Create the buffer the compute shader will write to
+	computeShaderProgram_test = new ShaderProgram();
+	computeShaderProgram_test->loadComputeShader("compute.comp"); // 쉐이더 지정
+
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
@@ -116,6 +120,8 @@ void MyGlWindow::initialize() {
 	shaderProgram_plane->addUniform("Material.Ks");
 	shaderProgram_plane->addUniform("Material.Shiness");
 	shaderProgram_plane->addUniform("viewProjection");
+	/////////////////////////////////////////////
+
 
 	// 애니메이션 dqs 생성
 	float duration1 = m_model->getDuration() * INDEX_PER_FRAME;
@@ -163,8 +169,10 @@ void MyGlWindow::initialize() {
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
 
-	glGenBuffers(1, &ssboHandle_ins);  //transformation
 	glGenBuffers(1, &ssboHandle_t);  // dq mat buffer
+	glGenBuffers(1, &ssboHandle_ins);  //transformation
+
+	glGenBuffers(1, &ssboHandle_compute_test);
 
 // TODO
 // 비슷한 애니메이션 offset(0.1초 정도)의 인스턴스는 묶어서 instancing 사용
@@ -311,7 +319,7 @@ shaderProgram->use(); // shader 호출
 	int size = amount;
 
 	float diff;
-	float angleSpeed = 10;
+	float angleSpeed = 1;
 	glm::mat3 mat = glm::mat3(1.0f);
 	for (int ins = 0; ins < size; ins++)
 	{
@@ -391,6 +399,41 @@ shaderProgram_gizmo->use();
 		m_line->draw();
 	}
 shaderProgram_gizmo->disable();
+
+
+computeShaderProgram_test->use();
+	initPos.clear();
+	int num_numeros = 12;
+	for (int i = 0; i < num_numeros; i++) {
+		initPos.push_back(1.0f);
+	}
+	for (int i = 0; i < num_numeros; i++) {
+		std::cout << "p" << i << ": " << initPos[i] << std::endl;
+	}
+
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_compute_test);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * num_numeros, &initPos, GL_DYNAMIC_DRAW);
+
+	glDispatchCompute(1, 1, 1);
+	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_compute_test);
+
+	GLfloat* ptr;
+	ptr = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+	initPos.clear();
+
+	for (int i = 0; i < num_numeros; i++) {
+		initPos.push_back(ptr[i]);
+	}
+
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+	for (int i = 0; i < num_numeros; i++) {
+		std::cout << "p" << i << ": " << initPos[i] << std::endl;
+	}
+computeShaderProgram_test->disable();
 }
 
 void MyGlWindow::resize(int w, int h) {
