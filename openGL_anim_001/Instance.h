@@ -5,15 +5,24 @@
 
 
 
+struct InsData {
+	glm::vec3 Position;
+	glm::vec3 Scale;
+	glm::vec3 Rotation;
+	glm::mat4 aInstanceMatrix;
+	float testValue = 1.0f;
+};
 
 struct Instance {
 public:
 	float getAnimationOffset();
+	InsData getData();
 	glm::vec3 getPosition();
 	glm::vec3 getRotation();
 	glm::vec3 getVelocity();
-public:
 	glm::mat4 getInstanceMatrix();
+public:
+	void setInstanceMatrix(glm::mat4 mat);
 	void setAnimationOffset(float offset);
 	void setPosition(glm::vec3 vec);
 	void setRotation(glm::vec3 vec);
@@ -23,13 +32,11 @@ public:
 	void Update();
 	bool updateMatrix();
 private:
+	InsData data;
 	float AnimationOffset;
-	glm::mat4 aInstanceMatrix;
-	glm::vec3 Position;
-	glm::vec3 Rotation;
-	glm::vec3 Scale;
 	glm::vec3 Velocity;
 
+	bool init = true;
 	bool hasVelocity = false;
 	bool doUpdateMatrix = true;
 	int delayUpdateMatrix = 0;

@@ -46,7 +46,9 @@ private:
 	ShaderProgram* shaderProgram;
 	ShaderProgram* shaderProgram_plane;
 	ShaderProgram* shaderProgram_gizmo;
-	ShaderProgram* computeShaderProgram_test;
+
+
+	GLuint computeShaderProgram_test;
 
 	int width;
 	int height;

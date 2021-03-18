@@ -1,5 +1,80 @@
 #include "MyGlWindow.h"
 
+// Compute Shader //////////////////////////////////////////////////
+std::string readFile(const char* fileName)
+{
+	std::string fileContent;
+	std::ifstream fileStream(fileName, std::ios::in);
+	if (!fileStream.is_open()) {
+		printf("File %s not found\n", fileName);
+		return "";
+	}
+	std::string line = "";
+	while (!fileStream.eof()) {
+		std::getline(fileStream, line);
+		fileContent.append(line + "\n");
+	}
+	fileStream.close();
+	return fileContent;
+}
+
+void printProgramLog(GLuint program)
+{
+	GLint result = GL_FALSE;
+	int logLength;
+
+	glGetProgramiv(program, GL_LINK_STATUS, &result);
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+	if (logLength > 0) {
+		GLchar* strInfoLog = new GLchar[logLength + 1];
+		glGetProgramInfoLog(program, logLength, NULL, strInfoLog);
+		printf("programlog: %s\n", strInfoLog);
+	};
+}
+
+void printShaderLog(GLuint shader)
+{
+	GLint result = GL_FALSE;
+	int logLength;
+
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+	if (logLength > 0) {
+		GLchar* strInfoLog = new GLchar[logLength + 1];
+		glGetShaderInfoLog(shader, logLength, NULL, strInfoLog);
+		printf("shaderlog: %s\n", strInfoLog);
+	};
+}
+
+GLuint loadComputeShader(const char* computeShaderFile)
+{
+
+	GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
+
+	// Read shaders
+	std::string computeShaderStr = readFile(computeShaderFile);
+	const char* computeShaderSrc = computeShaderStr.c_str();
+
+	GLint result = GL_FALSE;
+
+	std::cout << "Compiling compute shader." << std::endl;
+	glShaderSource(computeShader, 1, &computeShaderSrc, NULL);
+	glCompileShader(computeShader);
+
+	printShaderLog(computeShader);
+
+	std::cout << "Linking program" << std::endl;
+	GLuint program = glCreateProgram();
+	glAttachShader(program, computeShader);
+	glLinkProgram(program);
+	printProgramLog(program);
+
+	glDeleteShader(computeShader);
+
+	return program;
+}
+// Compute Shader //////////////////////////////////////////////////
+
 float rad2deg(double radian)
 {
 	return radian * 180 / 3.141592;
@@ -69,8 +144,8 @@ void MyGlWindow::setupBuffer()
 	shaderProgram_gizmo->initFromFiles("gizmo.vert", "gizmo.frag"); // 쉐이더 지정
 
 	//Create the buffer the compute shader will write to
-	computeShaderProgram_test = new ShaderProgram();
-	computeShaderProgram_test->loadComputeShader("compute.comp"); // 쉐이더 지정
+
+	computeShaderProgram_test = loadComputeShader("compute.comp"); // 쉐이더 지정
 
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
@@ -195,6 +270,7 @@ MyGlWindow::MyGlWindow(int w, int h)
 	initialize();
 }
 
+std::vector<InsData> insDatas;
 glm::vec3 Dest = glm::vec3(-1000, 0, 100);
 glm::mat4 view;
 glm::mat4 projection;
@@ -275,20 +351,6 @@ shaderProgram_plane->use();
 shaderProgram_plane->disable();
 
 
-shaderProgram->use(); // shader 호출
-	for (int i = 0; i < 1; i++)
-	{
-		std::string name;
-		name = "Light[" + std::to_string(i) + "].Position";
-		glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
-		name = "Light[" + std::to_string(i) + "].Intensity";
-		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
-	}
-	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-	glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
-	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 
 	// 0.03초 = 빠르다는 느낌
 	// 0.06초 = 빠르다는 느낌
@@ -356,7 +418,29 @@ shaderProgram->use(); // shader 호출
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
 		if (Instances[ins].updateMatrix()) {
-			
+			// 컴퓨트 셰이더로 계산
+			// 함수는 이상 없음
+			//  sizeof(InsData) = 104?
+			insDatas.clear();
+			insDatas.push_back(Instances[ins].getData());
+
+			glUseProgram(computeShaderProgram_test);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData), insDatas.data(), GL_DYNAMIC_DRAW);
+
+			std::cout << glm::to_string(insDatas[0].aInstanceMatrix) << std::endl;
+			glDispatchCompute(1, 1, 1);
+
+			InsData* ptr;
+			ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+			insDatas.clear();
+			insDatas.push_back(ptr[0]);
+
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+			glUseProgram(0);
+
+			Instances[ins].setInstanceMatrix(insDatas[ins].aInstanceMatrix);
 		}
 
 
@@ -367,6 +451,23 @@ shaderProgram->use(); // shader 호출
 		for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
 			dqsMatrices[dualQuaternions.size() * ins + i] = (*animationMatrices)[i];
 	}
+
+
+shaderProgram->use(); // shader 호출
+	for (int i = 0; i < 1; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
+	}
+	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+	glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
+	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+
 	glUniform1ui(shaderProgram->uniform("dqsize"), dualQuaternions.size());
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);
@@ -401,39 +502,9 @@ shaderProgram_gizmo->use();
 shaderProgram_gizmo->disable();
 
 
-computeShaderProgram_test->use();
-	initPos.clear();
-	int num_numeros = 12;
-	for (int i = 0; i < num_numeros; i++) {
-		initPos.push_back(1.0f);
-	}
-	for (int i = 0; i < num_numeros; i++) {
-		std::cout << "p" << i << ": " << initPos[i] << std::endl;
-	}
 
-	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_compute_test);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * num_numeros, &initPos, GL_DYNAMIC_DRAW);
 
-	glDispatchCompute(1, 1, 1);
-	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_compute_test);
-
-	GLfloat* ptr;
-	ptr = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-	initPos.clear();
-
-	for (int i = 0; i < num_numeros; i++) {
-		initPos.push_back(ptr[i]);
-	}
-
-	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
-	for (int i = 0; i < num_numeros; i++) {
-		std::cout << "p" << i << ": " << initPos[i] << std::endl;
-	}
-computeShaderProgram_test->disable();
 }
 
 void MyGlWindow::resize(int w, int h) {
