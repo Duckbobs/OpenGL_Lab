@@ -57,21 +57,18 @@ void Instance::Update() {
 bool Instance::updateMatrix() {
 	// doUpdateMatrix 를 통해 매트릭스를 업데이트할 필요가 있는지 확인
 	if (doUpdateMatrix) {
-		if (delayUpdateMatrix-- == 0) {
-			delayUpdateMatrix = 1; // 매트릭스 업데이트 딜레이 ( 0 = 딜레이 없음 )
-			doUpdateMatrix = false;
-			if (init) {
-				init = false;
-				glm::mat4 model = glm::mat4(1.0f);
-				model = glm::translate(model, data.Position);
-				model = glm::scale(model, data.Scale);
-				model = glm::rotate(model, data.Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				model = glm::rotate(model, data.Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				model = glm::rotate(model, data.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-				data.aInstanceMatrix = model;
-			}
-			return true;
+		doUpdateMatrix = false;
+		if (init) {
+			init = false;
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, data.Position);
+			model = glm::scale(model, data.Scale);
+			model = glm::rotate(model, data.Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, data.Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, data.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+			data.aInstanceMatrix = model;
 		}
+		return true;
 	}
 	return false;
 }

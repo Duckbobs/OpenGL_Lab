@@ -383,6 +383,7 @@ shaderProgram_plane->disable();
 	float diff;
 	float angleSpeed = 1;
 	glm::mat3 mat = glm::mat3(1.0f);
+	insDatas.clear();
 	for (int ins = 0; ins < size; ins++)
 	{
 		// 물리 업데이트 ( Velocity )
@@ -418,31 +419,8 @@ shaderProgram_plane->disable();
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
 		if (Instances[ins].updateMatrix()) {
-			// 컴퓨트 셰이더로 계산
-			// 함수는 이상 없음
-			//  sizeof(InsData) = 104?
-			insDatas.clear();
 			insDatas.push_back(Instances[ins].getData());
-
-			glUseProgram(computeShaderProgram_test);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData), insDatas.data(), GL_DYNAMIC_DRAW);
-
-			std::cout << glm::to_string(insDatas[0].aInstanceMatrix) << std::endl;
-			glDispatchCompute(1, 1, 1);
-
-			InsData* ptr;
-			ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-
-			insDatas.clear();
-			insDatas.push_back(ptr[0]);
-
-			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-			glUseProgram(0);
-
-			Instances[ins].setInstanceMatrix(insDatas[ins].aInstanceMatrix);
 		}
-
 
 		// 애니메이션 업데이트
 		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * 1.0f;
@@ -451,6 +429,49 @@ shaderProgram_plane->disable();
 		for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
 			dqsMatrices[dualQuaternions.size() * ins + i] = (*animationMatrices)[i];
 	}
+
+//////////////////////// 컴퓨트 셰이더로 계산 START
+	std::vector<InsData> insDatas_temp;
+	unsigned int loop = 0;
+	insDatas_temp.clear();
+	for (unsigned int pos = 0; pos < size; pos++) {
+		insDatas_temp.push_back(insDatas[pos]);
+		if (insDatas_temp.size() >= 100) {
+			glUseProgram(computeShaderProgram_test);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
+
+			glDispatchCompute(loop + 1, 1, 1);
+
+			InsData* ptr;
+			ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+			glUseProgram(0);
+			for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
+				Instances[ins + loop * 100].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+			}
+			insDatas_temp.clear();
+			loop++;
+		}
+	}
+	if (insDatas_temp.size() != 0) {
+		glUseProgram(computeShaderProgram_test);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
+
+		glDispatchCompute(loop + 1, 1, 1);
+
+		InsData* ptr;
+		ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUseProgram(0);
+		for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
+			Instances[ins + loop * 100].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+		}
+	}
+	insDatas.clear();
+	insDatas_temp.clear();
+//////////////////////// 컴퓨트 셰이더로 계산 END
 
 
 shaderProgram->use(); // shader 호출

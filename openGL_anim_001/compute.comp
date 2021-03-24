@@ -7,10 +7,9 @@ struct InsData {
 	vec3 Scale;
 	vec3 Rotation;
 	mat4 aInstanceMatrix;
-	float testValue;
 };
 layout(binding = 0) coherent buffer ssbo1 {
-    InsData data[];
+    float fdata[];
 };
 mat4 translate(mat4 m, vec3 v)
 {
@@ -57,17 +56,52 @@ mat4 rotate(mat4 m, float angle, vec3 v)
 	return Result;
 }
 
-
-
 void main(){
-    uint i = 0;
-	mat4 model = mat4(1.0f);
-	data[i].testValue *= 2.0f;
-	model = translate(model, data[i].Position);
-	model = scale(model, data[i].Scale);
-	model = rotate(model, data[i].Rotation.x, vec3(1.0f, 0.0f, 0.0f));
-	model = rotate(model, data[i].Rotation.y, vec3(0.0f, 1.0f, 0.0f));
-	model = rotate(model, data[i].Rotation.z, vec3(0.0f, 0.0f, 1.0f));
-	data[i].aInstanceMatrix = model;
+	InsData data;
+	uint f = 0;
+	float len = fdata.length();
+	uint mx, my;
+	vec3 rotX = vec3(1.0f, 0.0f, 0.0f);
+	vec3 rotY = vec3(0.0f, 1.0f, 0.0f);
+	vec3 rotZ = vec3(0.0f, 0.0f, 1.0f);
+	mat4 modelMat =  mat4(1.0f);
+
+	for(uint pos = 0; pos < len; ) {
+		f = pos;
+		data.Position = vec3(fdata[f++], fdata[f++], fdata[f++]);
+		data.Scale = vec3(fdata[f++], fdata[f++], fdata[f++]);
+		data.Rotation = vec3(fdata[f++], fdata[f++], fdata[f++]);
+		data.aInstanceMatrix = mat4(
+			vec4(fdata[f++], fdata[f++], fdata[f++], fdata[f++]),
+			vec4(fdata[f++], fdata[f++], fdata[f++], fdata[f++]),
+			vec4(fdata[f++], fdata[f++], fdata[f++], fdata[f++]),
+			vec4(fdata[f++], fdata[f++], fdata[f++], fdata[f++])
+		);
+		mat4 model = modelMat;
+		model = translate(model, data.Position);
+		model = scale(model, data.Scale);
+		model = rotate(model, data.Rotation.x, rotX);
+		model = rotate(model, data.Rotation.y, rotY);
+		model = rotate(model, data.Rotation.z, rotZ);
+		data.aInstanceMatrix = model;
+		
+		f = pos;
+		fdata[f++] = data.Position.x;
+		fdata[f++] = data.Position.y;
+		fdata[f++] = data.Position.z;
+		fdata[f++] = data.Scale.x;
+		fdata[f++] = data.Scale.y;
+		fdata[f++] = data.Scale.z;
+		fdata[f++] = data.Rotation.x;
+		fdata[f++] = data.Rotation.y;
+		fdata[f++] = data.Rotation.z;
+		for(mx = 0; mx < 4; ++mx) {
+			for(my = 0; my < 4; ++my) {
+				fdata[f++] = data.aInstanceMatrix[mx][my];
+			}
+		}
+		pos = f;
+	}
+
 }
 

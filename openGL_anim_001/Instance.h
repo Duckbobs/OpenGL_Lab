@@ -10,7 +10,6 @@ struct InsData {
 	glm::vec3 Scale;
 	glm::vec3 Rotation;
 	glm::mat4 aInstanceMatrix;
-	float testValue = 1.0f;
 };
 
 struct Instance {
@@ -39,5 +38,4 @@ private:
 	bool init = true;
 	bool hasVelocity = false;
 	bool doUpdateMatrix = true;
-	int delayUpdateMatrix = 0;
 };
