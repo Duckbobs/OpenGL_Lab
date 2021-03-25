@@ -154,7 +154,7 @@ void MyGlWindow::setupBuffer()
 	//directory = (char*)"assets/fast.fbx";
 	//directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
-	m_plane = new Plane(1000.0f, 1000.0f, 20, 20);
+	m_plane = new Plane(5000.0f, 5000.0f, 20, 20);
 	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
@@ -431,12 +431,13 @@ shaderProgram_plane->disable();
 	}
 
 //////////////////////// 컴퓨트 셰이더로 계산 START
+	unsigned int loopsize = 500;
 	std::vector<InsData> insDatas_temp;
 	unsigned int loop = 0;
 	insDatas_temp.clear();
 	for (unsigned int pos = 0; pos < size; pos++) {
 		insDatas_temp.push_back(insDatas[pos]);
-		if (insDatas_temp.size() >= 100) {
+		if (insDatas_temp.size() >= loopsize) {
 			glUseProgram(computeShaderProgram_test);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
 			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
@@ -448,7 +449,7 @@ shaderProgram_plane->disable();
 			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 			glUseProgram(0);
 			for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
-				Instances[ins + loop * 100].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+				Instances[ins + loop * loopsize].setInstanceMatrix(ptr[ins].aInstanceMatrix);
 			}
 			insDatas_temp.clear();
 			loop++;
@@ -466,7 +467,7 @@ shaderProgram_plane->disable();
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		glUseProgram(0);
 		for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
-			Instances[ins + loop * 100].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+			Instances[ins + loop * loopsize].setInstanceMatrix(ptr[ins].aInstanceMatrix);
 		}
 	}
 	insDatas.clear();
