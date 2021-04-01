@@ -158,7 +158,7 @@ void MyGlWindow::setupBuffer()
 	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
-float INDEX_PER_FRAME = 30.0f;
+float INDEX_PER_FRAME = 50.0f;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
 
@@ -238,8 +238,9 @@ void MyGlWindow::initialize() {
 		instance.setPosition(glm::vec3(x, y, z));
 		instance.setRotation(glm::vec3(0.0f, rotAngle, 0.0f));
 		instance.setScale(glm::vec3(0.1f));
+		instance.speed = 0.5f + (rand() % 100) * 0.01f;
 
-		instance.setVelocity(rad2normal(deg2rad(rotAngle)));
+		instance.setVelocity(rad2normal(deg2rad(rotAngle)) * instance.speed);
 		Instances.push_back(instance);
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
@@ -354,11 +355,13 @@ shaderProgram_plane->disable();
 
 	// 0.03초 = 빠르다는 느낌
 	// 0.06초 = 빠르다는 느낌
-	// 0.1초 = 느려지고 있다고 느낌
+	// 0.1초 = 느려지고 있다고 느낌, 느리다고 느낌
 	// 0.2초 = 느리다고 느낌
 	{
 		ImGui::Begin("Window");
 		ImGui::SliderInt("Amount###SliderInt", &amount, 0, max_amount);
+		ImGui::SliderFloat("AnimationSpeed###SliderFloat", &animationSpeed, 0, 10);
+		
 		ImGui::End();
 	}
 
@@ -409,7 +412,7 @@ shaderProgram_plane->disable();
 				}
 			}
 			// Update
-			Instances[ins].setVelocity(rad2normal(newRadian));
+			Instances[ins].setVelocity(rad2normal(newRadian) * Instances[ins].speed);
 			Instances[ins].setRotation(glm::vec3(0, newRadian, 0));
 		}
 		else {
@@ -423,8 +426,10 @@ shaderProgram_plane->disable();
 		}
 
 		// 애니메이션 업데이트
-		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * 1.0f;
+		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed * Instances[ins].speed;
+		//float findex = std::max(1.0f, (fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
 		int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
+
 		std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
 		for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
 			dqsMatrices[dualQuaternions.size() * ins + i] = (*animationMatrices)[i];

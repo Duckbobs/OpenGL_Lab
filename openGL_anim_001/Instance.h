@@ -14,6 +14,7 @@ struct InsData {
 
 struct Instance {
 public:
+	float speed;
 	float getAnimationOffset();
 	InsData getData();
 	glm::vec3 getPosition();
