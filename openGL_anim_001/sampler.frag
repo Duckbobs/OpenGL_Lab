@@ -42,11 +42,11 @@ void main()
 		diffuse = Light[i].Intensity * Material.Kd * max(dot(L, N),0);
 		spec = Light[i].Intensity * Material.Ks * pow(max(dot(H, N), 0.0), Material.Shiness);
 		
-		float dist = length(Position - Light[i].Position.xyz);
+		/*float dist = length(Position - Light[i].Position.xyz);
 		float attenuation = 1.0 / (1.0f + 0.0014f * dist + 0.000007f * (dist * dist));
 		ambient  *= attenuation;
 		diffuse  *= attenuation;
-		spec *= attenuation;
+		spec *= attenuation;*/
 		
 		fLightIntensity += (diffuse + spec);
 	}

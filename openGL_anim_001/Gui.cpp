@@ -3,7 +3,7 @@
 void Gui::Test()
 {
 	static bool checkBox = false;
-	static int sliderInt = 50000;
+	static int sliderInt = 10000;
 	ImGui::Begin("Window");
 	ImGui::Checkbox("Toggle", &checkBox);
 	//ImGui::SliderInt("Slider###SliderInt", &sliderInt, 0, 50000);
