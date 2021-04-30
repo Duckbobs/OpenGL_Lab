@@ -238,10 +238,17 @@ void MyGlWindow::initialize() {
 		instance.setPosition(glm::vec3(x, y, z));
 		instance.setRotation(glm::vec3(0.0f, rotAngle, 0.0f));
 		instance.setScale(glm::vec3(0.1f));
-		instance.speed = 0.5f + (rand() % 100) * 0.01f;
+		instance.speed = 0.5f + (rand() % 100000) * 0.00001f;
 
 		instance.setVelocity(rad2normal(deg2rad(rotAngle)) * instance.speed);
 		Instances.push_back(instance);
+
+
+		glm::vec3 destDir = glm::normalize(Dest - instance.getPosition());
+		float destRadian = atan2f(destDir.x, destDir.z);
+		destRadian = deg2rad(rad2deg(destRadian) + 90);
+		instance.setVelocity(rad2normal(destRadian) * instance.speed);
+		instance.setRotation(glm::vec3(0, destRadian, 0));
 	}
 	dqsMatrices = new glm::mat2x4[max_amount * m_model->modelData.m_NumBones];
 
@@ -272,7 +279,7 @@ MyGlWindow::MyGlWindow(int w, int h)
 }
 
 std::vector<InsData> insDatas;
-glm::vec3 Dest = glm::vec3(-1000, 0, 100);
+glm::vec3 Dest = glm::vec3(0, 0, 0);
 glm::mat4 view;
 glm::mat4 projection;
 const glm::mat4 _mat = glm::mat4(1.0f);
@@ -391,6 +398,14 @@ shaderProgram_plane->disable();
 	{
 		// 물리 업데이트 ( Velocity )
 		Instances[ins].Update();
+		/*
+		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
+		float destRadian = atan2f(destDir.x, destDir.z);
+		destRadian = deg2rad(rad2deg(destRadian) + 90);
+		Instances[ins].setVelocity(rad2normal(destRadian) * Instances[ins].speed);
+		Instances[ins].setRotation(glm::vec3(0, destRadian, 0));
+		*/
+		/*
 		glm::vec3 oldVelocity = Instances[ins].getVelocity();
 		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
 // Steering Rotation
@@ -418,6 +433,7 @@ shaderProgram_plane->disable();
 		else {
 			// 변화 X
 		}
+		*/
 
 // TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
