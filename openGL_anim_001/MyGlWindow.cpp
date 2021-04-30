@@ -158,6 +158,7 @@ void MyGlWindow::setupBuffer()
 	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
+int lab_instance = 0;
 float INDEX_PER_FRAME = 50.0f;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
@@ -214,11 +215,53 @@ void MyGlWindow::initialize() {
 		}
 	}
 	/////////////////////////////////////////////
+	// 인스턴스 생성
+	{
+		Instance instance;
+		instance.setAnimationOffset(rand());
+		instance.setPosition(glm::vec3(0, 0, 0));
+		instance.setScale(glm::vec3(0.1f));
+		instance.speed = 0.5f;
+		instance.setVelocity(glm::vec3(0));
+		Instances.push_back(instance);
+	}
+	// 인스턴스 생성
+	{
+		Instance instance;
+		instance.setAnimationOffset(rand());
+		instance.setPosition(glm::vec3(10, 0, 0));
+		instance.setScale(glm::vec3(0.1f));
+		instance.speed = 1.0f;
+		instance.setVelocity(glm::vec3(0));
+		Instances.push_back(instance);
+	}
+	// 인스턴스 생성
+	{
+		Instance instance;
+		instance.setAnimationOffset(rand());
+		instance.setPosition(glm::vec3(20, 0, 0));
+		instance.setScale(glm::vec3(0.1f));
+		instance.speed = 2.0f;
+		instance.setVelocity(glm::vec3(0));
+		Instances.push_back(instance);
+	}
+	// 인스턴스 생성
+	{
+		Instance instance;
+		instance.setAnimationOffset(rand());
+		instance.setPosition(glm::vec3(30, 0, 0));
+		instance.setScale(glm::vec3(0.1f));
+		instance.speed = 3.0f;
+		instance.setVelocity(glm::vec3(0));
+		Instances.push_back(instance);
+	}
+	/////////////////////////////////////////////
+	lab_instance = Instances.size();
 	// 생성
 	srand(clock()); // initialize random seed	
 	float radius = 200.0;
-	float offset = 100.5f;
-	for (unsigned int i = 0; i < max_amount; i++)
+	float offset = 100.0f;
+	for (unsigned int i = lab_instance; i < max_amount; i++)
 	{
 		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
 		float angle = (float)i / (float)max_amount * 360.0f;
@@ -244,7 +287,7 @@ void MyGlWindow::initialize() {
 		Instances.push_back(instance);
 
 
-		glm::vec3 destDir = glm::normalize(Dest - instance.getPosition());
+		glm::vec3 destDir = glm::normalize(instance.getPosition());
 		float destRadian = atan2f(destDir.x, destDir.z);
 		destRadian = deg2rad(rad2deg(destRadian) + 90);
 		instance.setVelocity(rad2normal(destRadian) * instance.speed);
@@ -398,13 +441,16 @@ shaderProgram_plane->disable();
 	{
 		// 물리 업데이트 ( Velocity )
 		Instances[ins].Update();
-		/*
-		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
-		float destRadian = atan2f(destDir.x, destDir.z);
-		destRadian = deg2rad(rad2deg(destRadian) + 90);
-		Instances[ins].setVelocity(rad2normal(destRadian) * Instances[ins].speed);
-		Instances[ins].setRotation(glm::vec3(0, destRadian, 0));
-		*/
+		
+		if (ins >= lab_instance) {
+			// 실험 인스턴스 아닐경우 실행
+			glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
+			float destRadian = atan2f(destDir.x, destDir.z);
+			destRadian = deg2rad(rad2deg(destRadian) + 90);
+			Instances[ins].setVelocity(rad2normal(destRadian) * Instances[ins].speed);
+			Instances[ins].setRotation(glm::vec3(0, destRadian, 0));
+		}
+		
 		/*
 		glm::vec3 oldVelocity = Instances[ins].getVelocity();
 		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
@@ -540,7 +586,7 @@ shaderProgram_gizmo->use();
 
 	if (m_line)
 	{
-		m_line->draw();
+		//m_line->draw();
 	}
 shaderProgram_gizmo->disable();
 

@@ -19,7 +19,7 @@ class MyGlWindow {
 public:
 	float animationSpeed = 1.0f;
 	int max_amount = 50000; // 최대 인스턴스 개수
-	int amount = 1; // 인스턴스 개수
+	int amount = 500; // 인스턴스 개수
 
 	MyGlWindow(int w, int h);
 	void resize(int w, int h);
