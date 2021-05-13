@@ -29,7 +29,7 @@ struct ModelData {
     std::vector<Interval> m_constraints;
     std::map<unsigned int, glm::vec3> skeleton_pose;
 
-    bool animationMatricesExists[2500] = { true };
+    bool animationMatricesExists[2500] = { false };
     std::vector<glm::mat2x4> animationMatrices[2500];
 };
 /*struct Texture {

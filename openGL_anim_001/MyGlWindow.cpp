@@ -151,7 +151,7 @@ void MyGlWindow::setupBuffer()
 
 	char* directory;
 	directory = (char*)"assets/human/human.fbx";
-	//directory = (char*)"assets/fast.fbx";
+	//directory = (char*)"assets/fast2.fbx";
 	//directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
 	m_plane = new Plane(5000.0f, 5000.0f, 20, 20);
@@ -159,7 +159,8 @@ void MyGlWindow::setupBuffer()
 }
 
 int lab_instance = 0;
-float INDEX_PER_FRAME = 60.0f;
+float duration1;
+float INDEX_PER_FRAME = 100;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
 
@@ -203,29 +204,30 @@ void MyGlWindow::initialize() {
 
 // Duration mTime 값이 뭔지?
 	// m_model->getDuration() = 11.8000002
-	float duration1 = m_model->getDuration() * INDEX_PER_FRAME;
+	// getDuration = 상수 역할?
+	duration1 = 1 * INDEX_PER_FRAME;
 	for (float animationTime = 0; animationTime < duration1; animationTime++) {
-		int index = std::max(1, (int)(glm::round(fmod(animationTime, duration1))));
+		//int index = std::max(1, (int)(glm::round(fmod(animationTime, duration1))));
+		int index = fmod(animationTime, duration1);
 		max_index = index;
 		std::cout << index << std::endl;
 
 		if (m_model->modelData.animationMatricesExists[index] == false) {
-			// 각 관절 계산
-			m_model->BoneTransform(fmod(animationTime, duration1) / INDEX_PER_FRAME, dualQuaternions);
-			m_model->BoneTransform(fmod(animationTime, duration1) / INDEX_PER_FRAME, dualQuaternions2);
+			// 각 관절 계산, lerp 하려고 2개임
+			m_model->BoneTransform(fmod(animationTime, duration1) / duration1, dualQuaternions);
+			//m_model->BoneTransform(index / INDEX_PER_FRAME, dualQuaternions2);
 			//m_model->BoneTransform(std::fmax(1, fmod(animationTime + INDEX_PER_FRAME, duration1)) / INDEX_PER_FRAME, dualQuaternions2);
 
-			// 각 관절 계산
+			// 각 관절 계산, lerp 해서 push
 			for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
-				//glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
-				//(m_model->modelData.animationMatrices[index]).push_back(mat);
-
-				glm::quat v1 = glm::slerp(dualQuaternions[i][0], dualQuaternions2[i][0], (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME);
-				glm::quat v2 = glm::slerp(dualQuaternions[i][1], dualQuaternions2[i][1], (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME);
-				glm::highp_mat2x4 mat = { {v1.x, v1.y, v1.z, v1.w}, {v2.x, v2.y, v2.z, v2.w} };
-				//std::cout << (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME << std::endl;
-
+				glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
 				(m_model->modelData.animationMatrices[index]).push_back(mat);
+
+				//glm::quat v1 = glm::slerp(dualQuaternions[i][0], dualQuaternions2[i][0], (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME);
+				//glm::quat v2 = glm::slerp(dualQuaternions[i][1], dualQuaternions2[i][1], (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME);
+				//glm::highp_mat2x4 mat = { {v1.x, v1.y, v1.z, v1.w}, {v2.x, v2.y, v2.z, v2.w} };
+				//std::cout << (float)fmod(index, INDEX_PER_FRAME) / INDEX_PER_FRAME << std::endl;
+				//(m_model->modelData.animationMatrices[index]).push_back(mat);
 			}
 			m_model->modelData.animationMatricesExists[index] = true;
 		}
@@ -479,7 +481,6 @@ shaderProgram_plane->disable();
 		ImGui::End();
 	}
 
-	float duration1 = m_model->getDuration();
 	int size = amount;
 
 	float diff;
@@ -499,7 +500,7 @@ shaderProgram_plane->disable();
 			Instances[ins].setVelocity(rad2normal(destRadian) * Instances[ins].speed);
 			Instances[ins].setRotation(glm::vec3(0, destRadian, 0));
 		}
-		else {
+		else if(ins != 0) {
 			Instances[ins].setVelocity(glm::vec3(0, 0, 1) * Instances[ins].speed);
 			glm::vec3 pos = Instances[ins].getPosition();
 			if (pos.z > 50) {
@@ -544,23 +545,24 @@ shaderProgram_plane->disable();
 		}
 
 		// 애니메이션 업데이트
-		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed * Instances[ins].speed;
+		float TimeInTicks = (animationTime) * animationSpeed * (Instances[ins].speed * INDEX_PER_FRAME * 10);
 		if (ins == 1) {
-			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_1 * Instances[ins].speed;
+			TimeInTicks = (animationTime) * animationSpeed_1 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
 		}
 		if (ins == 2) {
-			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_2 * Instances[ins].speed;
+			TimeInTicks = (animationTime) * animationSpeed_2 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
 		}
 		if (ins == 3) {
-			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_3 * Instances[ins].speed;
+			TimeInTicks = (animationTime) * animationSpeed_3 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
 		}
 		//float findex = std::max(1.0f, (fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
 
-		int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
-		index = std::min(index, max_index); // 반복 하도록 설정
+		//int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
+		int index = fmod(TimeInTicks + Instances[ins].getAnimationOffset(), duration1);
 		if (ins == 0) {
-			index = std::max(1, lab_index);
+			index = lab_index;
 		}
+		//index = std::max(1, index);
 		std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
 		for (unsigned int i = 0; i < dualQuaternions.size(); ++i)
 			dqsMatrices[dualQuaternions.size() * ins + i] = (*animationMatrices)[i];

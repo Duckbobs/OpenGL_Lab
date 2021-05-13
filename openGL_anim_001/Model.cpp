@@ -41,10 +41,10 @@ int Model::BoneTransform(float TimeInSeconds, std::vector<glm::fdualquat>& dqs)
         modelData.scene->mAnimations[0]->mTicksPerSecond : 25.0f;
     float duration = modelData.scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
     float AnimationTime = fmod(TimeInSeconds * TicksPerSecond, duration);
-    if (AnimationTime < 0.6) {
-        std::cout << "AniTime: " << AnimationTime << std::endl;
-        AnimationTime = 0.6;
-    }
+    //if (AnimationTime < 0.01f) {
+    //    std::cout << "AniTime: " << AnimationTime << std::endl;
+    //    AnimationTime = 0.01f;
+    //}
 
     ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, glm::mat4(1.0f), modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
 
