@@ -40,22 +40,30 @@ int Model::BoneTransform(float TimeInSeconds, std::vector<glm::fdualquat>& dqs)
     float TicksPerSecond = modelData.scene->mAnimations[0]->mTicksPerSecond != 0 ?
         modelData.scene->mAnimations[0]->mTicksPerSecond : 25.0f;
     float duration = modelData.scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime;
-    float AnimationTime = fmod(TimeInSeconds * TicksPerSecond, duration);
+    //float AnimationTime = fmod(TimeInSeconds * TicksPerSecond, duration);
+
+    float AnimationTime = TimeInSeconds * TicksPerSecond;
+    if (AnimationTime >= duration) { return 0; }
+
     //if (AnimationTime < 0.01f) {
     //    std::cout << "AniTime: " << AnimationTime << std::endl;
     //    AnimationTime = 0.01f;
     //}
 
-    ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, glm::mat4(1.0f), modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
-
-    for (unsigned int i = 0; i < dqs.size(); ++i) {
-        dqs[i] = modelData.m_BoneInfo[i].FinalTransDQ;
-    }
-
+    bool contain = false;
     for (int i = 0; i < modelData.m_constraints.size(); i++) {
-        if (modelData.m_constraints[i].contains(AnimationTime)) return 1;
+        if (modelData.m_constraints[i].contains(AnimationTime)) contain = true;
     }
 
+    //if (contain) {
+        ReadNodeHeirarchy(modelData.scene, AnimationTime, modelData.scene->mRootNode, glm::mat4(1.0f), modelData.IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
+
+        for (unsigned int i = 0; i < dqs.size(); ++i) {
+            dqs[i] = modelData.m_BoneInfo[i].FinalTransDQ;
+        }
+
+        return 1;
+    //}
     return 0;
 }
 

@@ -160,7 +160,7 @@ void MyGlWindow::setupBuffer()
 
 int lab_instance = 0;
 float duration1;
-float INDEX_PER_FRAME = 100;
+float INDEX_PER_FRAME = 30;
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
 
@@ -205,16 +205,40 @@ void MyGlWindow::initialize() {
 // Duration mTime 값이 뭔지?
 	// m_model->getDuration() = 11.8000002
 	// getDuration = 상수 역할?
-	duration1 = 1 * INDEX_PER_FRAME;
-	for (float animationTime = 0; animationTime < duration1; animationTime++) {
+
+	int index = 0;
+	while (true) {
+		std::cout << index << std::endl;
+		if (m_model->modelData.animationMatricesExists[index] == false) {
+			// 각 관절 계산, lerp 하려고 2개임
+			if (m_model->BoneTransform(index / INDEX_PER_FRAME, dualQuaternions)) {
+				// 각 관절 계산, lerp 해서 push
+				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
+					glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
+					(m_model->modelData.animationMatrices[index]).push_back(mat);
+				}
+				m_model->modelData.animationMatricesExists[index] = true;
+			}
+			else {
+				break;
+			}
+		}
+		max_index = index-1;
+		index += 1;
+	}
+
+	/*
+	duration1 = m_model->getDuration() * INDEX_PER_FRAME;
+	for (float animationTime = 0; animationTime <= duration1; animationTime++) {
 		//int index = std::max(1, (int)(glm::round(fmod(animationTime, duration1))));
-		int index = fmod(animationTime, duration1);
-		max_index = index;
+		int index = fmod(animationTime, duration1+0.001f);
+		if(index > max_index)
+			max_index = index;
 		std::cout << index << std::endl;
 
 		if (m_model->modelData.animationMatricesExists[index] == false) {
 			// 각 관절 계산, lerp 하려고 2개임
-			m_model->BoneTransform(fmod(animationTime, duration1) / duration1, dualQuaternions);
+			m_model->BoneTransform(animationTime, dualQuaternions);
 			//m_model->BoneTransform(index / INDEX_PER_FRAME, dualQuaternions2);
 			//m_model->BoneTransform(std::fmax(1, fmod(animationTime + INDEX_PER_FRAME, duration1)) / INDEX_PER_FRAME, dualQuaternions2);
 
@@ -231,7 +255,7 @@ void MyGlWindow::initialize() {
 			}
 			m_model->modelData.animationMatricesExists[index] = true;
 		}
-	}
+	}*/
 	// 애니메이션 dqs 생성
 	/*int total_index = 1;
 	float duration1 = m_model->getDuration();
@@ -545,15 +569,15 @@ shaderProgram_plane->disable();
 		}
 
 		// 애니메이션 업데이트
-		float TimeInTicks = (animationTime) * animationSpeed * (Instances[ins].speed * INDEX_PER_FRAME * 10);
+		float TimeInTicks = (animationTime) * animationSpeed * (Instances[ins].speed * INDEX_PER_FRAME);
 		if (ins == 1) {
-			TimeInTicks = (animationTime) * animationSpeed_1 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
+			TimeInTicks = (animationTime) * animationSpeed_1 * (Instances[ins].speed * INDEX_PER_FRAME);
 		}
 		if (ins == 2) {
-			TimeInTicks = (animationTime) * animationSpeed_2 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
+			TimeInTicks = (animationTime) * animationSpeed_2 * (Instances[ins].speed * INDEX_PER_FRAME);
 		}
 		if (ins == 3) {
-			TimeInTicks = (animationTime) * animationSpeed_3 * (Instances[ins].speed * INDEX_PER_FRAME * 10);
+			TimeInTicks = (animationTime) * animationSpeed_3 * (Instances[ins].speed * INDEX_PER_FRAME);
 		}
 		//float findex = std::max(1.0f, (fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
 
