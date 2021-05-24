@@ -150,7 +150,7 @@ void MyGlWindow::setupBuffer()
 	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 	char* directory;
-	directory = (char*)"assets/human/human.fbx";
+	directory = (char*)"assets/human/human2.fbx";
 	//directory = (char*)"assets/fast2.fbx";
 	//directory = (char*)"assets/suit/scene.fbx";
 	m_model = new Model(directory);
@@ -206,13 +206,14 @@ void MyGlWindow::initialize() {
 	// m_model->getDuration() = 11.8000002
 	// getDuration = 상수 역할?
 
-	int index = 0;
-	while (true) {
-		std::cout << index << std::endl;
+	duration1 = m_model->getDuration() * INDEX_PER_FRAME;
+	for (float animationTime = 0; animationTime < duration1; animationTime++) {
+		int index = fmod(animationTime, duration1);
+
 		if (m_model->modelData.animationMatricesExists[index] == false) {
-			// 각 관절 계산, lerp 하려고 2개임
-			if (m_model->BoneTransform(index / INDEX_PER_FRAME, dualQuaternions)) {
-				// 각 관절 계산, lerp 해서 push
+			if (m_model->BoneTransform(fmod(animationTime, duration1) / duration1, dualQuaternions)) {
+				max_index = index;
+				std::cout << index << std::endl;
 				for (unsigned int i = 0; i < dualQuaternions.size(); ++i) {
 					glm::highp_mat2x4 mat = glm::mat2x4_cast(dualQuaternions[i]);
 					(m_model->modelData.animationMatrices[index]).push_back(mat);
@@ -223,8 +224,6 @@ void MyGlWindow::initialize() {
 				break;
 			}
 		}
-		max_index = index-1;
-		index += 1;
 	}
 
 	/*
@@ -569,22 +568,23 @@ shaderProgram_plane->disable();
 		}
 
 		// 애니메이션 업데이트
-		float TimeInTicks = (animationTime) * animationSpeed * (Instances[ins].speed * INDEX_PER_FRAME);
+		float TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed * Instances[ins].speed;
 		if (ins == 1) {
-			TimeInTicks = (animationTime) * animationSpeed_1 * (Instances[ins].speed * INDEX_PER_FRAME);
+			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_1 * Instances[ins].speed;
 		}
 		if (ins == 2) {
-			TimeInTicks = (animationTime) * animationSpeed_2 * (Instances[ins].speed * INDEX_PER_FRAME);
+			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_2 * Instances[ins].speed;
 		}
 		if (ins == 3) {
-			TimeInTicks = (animationTime) * animationSpeed_3 * (Instances[ins].speed * INDEX_PER_FRAME);
+			TimeInTicks = (animationTime + Instances[ins].getAnimationOffset()) * animationSpeed_3 * Instances[ins].speed;
 		}
-		//float findex = std::max(1.0f, (fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
 
-		//int index = std::max(1, (int)(fmod(TimeInTicks, duration1) * INDEX_PER_FRAME)); // 반복 하도록 설정
-		int index = fmod(TimeInTicks + Instances[ins].getAnimationOffset(), duration1);
+		int index = std::max(1, (int)(fmod(TimeInTicks * INDEX_PER_FRAME * 20, max_index))); // 반복 하도록 설정
 		if (ins == 0) {
-			index = lab_index;
+			index = std::max(1, lab_index);
+		}
+		if (ins == 1) {
+			std::cout << index << std::endl;
 		}
 		//index = std::max(1, index);
 		std::vector<glm::mat2x4>* animationMatrices = &(m_model->modelData.animationMatrices[index]);
