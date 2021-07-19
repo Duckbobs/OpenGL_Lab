@@ -136,52 +136,11 @@ void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
 	shaderProgram->initFromFiles("sampler.vert", "sampler.frag"); // 쉐이더 지정
+	shaderProgram->addUniform("u_viewProjection");
+	shaderProgram->addUniform("u_timer");
 
 	shaderProgram_plane = new ShaderProgram();
 	shaderProgram_plane->initFromFiles("plane.vert", "plane.frag"); // 쉐이더 지정
-
-	shaderProgram_gizmo = new ShaderProgram();
-	shaderProgram_gizmo->initFromFiles("gizmo.vert", "gizmo.frag"); // 쉐이더 지정
-
-	//Create the buffer the compute shader will write to
-
-	computeShaderProgram_test = loadComputeShader("compute.comp"); // 쉐이더 지정
-
-	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-	char* directory;
-	directory = (char*)"assets/GrassFBX.fbx";
-	m_model = new Model(directory);
-	m_plane = new Plane(5000.0f, 5000.0f, 20, 20);
-	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
-}
-
-int lab_instance = 0;
-float duration1;
-float INDEX_PER_FRAME = 30;
-void MyGlWindow::initialize() {
-	MyGlWindow::setupBuffer();
-
-	shaderProgram_gizmo->addUniform("mvp");
-
-	/////////////////////////////////////////////
-	// 유니폼
-	for (int i = 0; i < 1; i++) 
-	{
-		std::string name;
-		name = "Light[" + std::to_string(i) + "].Position";
-		shaderProgram->addUniform(name);
-		name = "Light[" + std::to_string(i) + "].Intensity";
-		shaderProgram->addUniform(name);
-	}
-	shaderProgram->addUniform("Material.Ka");
-	shaderProgram->addUniform("Material.Kd");
-	shaderProgram->addUniform("Material.Ks");
-	shaderProgram->addUniform("Material.Shiness");
-	shaderProgram->addUniform("viewProjection");
-	shaderProgram->addUniform("dqsize");
-	/////////////////////////////////////////////
-	// 유니폼
 	for (int i = 0; i < 1; i++)
 	{
 		std::string name;
@@ -195,49 +154,25 @@ void MyGlWindow::initialize() {
 	shaderProgram_plane->addUniform("Material.Ks");
 	shaderProgram_plane->addUniform("Material.Shiness");
 	shaderProgram_plane->addUniform("viewProjection");
-	/////////////////////////////////////////////
-	/*// 인스턴스 생성
-	{
-		Instance instance;
-		instance.setAnimationOffset(rand());
-		instance.setPosition(glm::vec3(0, 0, 0));
-		instance.setScale(glm::vec3(0.1f));
-		instance.speed = 0.5f;
-		instance.setVelocity(glm::vec3(0));
-		Instances.push_back(instance);
-	}
-	// 인스턴스 생성
-	{
-		Instance instance;
-		instance.setAnimationOffset(rand());
-		instance.setPosition(glm::vec3(10, 0, 0));
-		instance.setScale(glm::vec3(0.1f));
-		instance.speed = 1.0f;
-		instance.setVelocity(glm::vec3(0));
-		Instances.push_back(instance);
-	}
-	// 인스턴스 생성
-	{
-		Instance instance;
-		instance.setAnimationOffset(rand());
-		instance.setPosition(glm::vec3(20, 0, 0));
-		instance.setScale(glm::vec3(0.1f));
-		instance.speed = 2.0f;
-		instance.setVelocity(glm::vec3(0));
-		Instances.push_back(instance);
-	}
-	// 인스턴스 생성
-	{
-		Instance instance;
-		instance.setAnimationOffset(rand());
-		instance.setPosition(glm::vec3(30, 0, 0));
-		instance.setScale(glm::vec3(0.1f));
-		instance.speed = 3.0f;
-		instance.setVelocity(glm::vec3(0));
-		Instances.push_back(instance);
-	}*/
-	/////////////////////////////////////////////
-	lab_instance = Instances.size();
+
+
+	//Create the buffer the compute shader will write to
+	computeShaderProgram_test = loadComputeShader("compute.comp"); // 쉐이더 지정
+
+	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+
+	char* directory;
+	directory = (char*)"assets/Grass.fbx";
+	m_model = new Model(directory);
+	m_plane = new Plane(5000.0f, 5000.0f, 20, 20);
+	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
+}
+
+int lab_instance = 0;
+float duration1;
+float INDEX_PER_FRAME = 30;
+void MyGlWindow::initialize() {
+	MyGlWindow::setupBuffer();
 	// 생성
 	srand(clock()); // initialize random seed	
 	float radius = 200.0;
@@ -258,14 +193,14 @@ void MyGlWindow::initialize() {
 		float rotAngle2 = ((ran+90) % 360);
 
 
-		float scale = 10.0f + rand()%20;
+		float scale = 20.0f + rand()%20;
 
 		{
 			// 인스턴스 생성
 			Instance instance;
 			instance.setPosition(glm::vec3(x, y, z));
 			instance.setRotation(glm::vec3(0, rotAngle1, 0));
-			instance.setScale(glm::vec3(scale));
+			instance.setScale(glm::vec3(scale, scale, scale));
 			Instances.push_back(instance);
 		}
 		{
@@ -273,7 +208,7 @@ void MyGlWindow::initialize() {
 			Instance instance;
 			instance.setPosition(glm::vec3(x, y, z));
 			instance.setRotation(glm::vec3(0, rotAngle2, 0));
-			instance.setScale(glm::vec3(scale));
+			instance.setScale(glm::vec3(scale, scale, scale));
 			Instances.push_back(instance);
 		}
 	}
@@ -433,51 +368,9 @@ shaderProgram_plane->disable();
 		
 		if (ins >= lab_instance) {
 			// 실험 인스턴스 아닐경우 실행
-			//glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
-			//float destRadian = atan2f(destDir.x, destDir.z);
-			//destRadian = deg2rad(rad2deg(destRadian) + 90);
-			//Instances[ins].setVelocity(rad2normal(destRadian) * Instances[ins].speed);
-			//Instances[ins].setRotation(glm::vec3(0, destRadian, 0));
 		}
 		else if(ins != 0) {
-			//Instances[ins].setVelocity(glm::vec3(0, 0, 1) * Instances[ins].speed);
-			//glm::vec3 pos = Instances[ins].getPosition();
-			//if (pos.z > 50) {
-				//Instances[ins].setPosition(glm::vec3(pos.x, pos.y, 0));
-			//}
 		}
-		
-		/*
-		glm::vec3 oldVelocity = Instances[ins].getVelocity();
-		glm::vec3 destDir = glm::normalize(Dest - Instances[ins].getPosition());
-// Steering Rotation
-		float oldRadian = atan2f(oldVelocity.x, oldVelocity.z);
-		float destRadian = atan2f(destDir.x, destDir.z);
-		float newRadian = oldRadian;
-
-		if (oldRadian != destRadian) {
-			diff = angle_difference(rad2deg(newRadian), rad2deg(destRadian));
-			if (std::abs(diff) < angleSpeed) {
-				newRadian = destRadian;
-			}
-			else {
-				if (diff < 0) {
-					newRadian = deg2rad(rad2deg(newRadian) + angleSpeed);
-				}
-				else {
-					newRadian = deg2rad(rad2deg(newRadian) - angleSpeed);
-				}
-			}
-			// Update
-			Instances[ins].setVelocity(rad2normal(newRadian) * Instances[ins].speed);
-			Instances[ins].setRotation(glm::vec3(0, newRadian, 0));
-		}
-		else {
-			// 변화 X
-		}
-		*/
-
-// TODO // 화면 밖이거나, 보여지지 않을 경우, 모델 매트릭스 업데이트를 하지 않는다.
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
 		if (Instances[ins].updateMatrix()) {
 			insDatas.push_back(Instances[ins].getData());
@@ -485,28 +378,31 @@ shaderProgram_plane->disable();
 	}
 
 //////////////////////// 컴퓨트 셰이더로 계산 START
-/*	unsigned int loopsize = 500;
+	unsigned int loopsize = 500;
 	std::vector<InsData> insDatas_temp;
 	unsigned int loop = 0;
 	insDatas_temp.clear();
+
 	for (unsigned int pos = 0; pos < size; pos++) {
-		insDatas_temp.push_back(insDatas[pos]);
-		if (insDatas_temp.size() >= loopsize) {
-			glUseProgram(computeShaderProgram_test);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
+		if (insDatas.size() > pos) {
+			insDatas_temp.push_back(insDatas[pos]);
+			if (insDatas_temp.size() >= loopsize) {
+				glUseProgram(computeShaderProgram_test);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+				glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
 
-			glDispatchCompute(loop + 1, 1, 1);
+				glDispatchCompute(loop + 1, 1, 1);
 
-			InsData* ptr;
-			ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-			glUseProgram(0);
-			for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
-				Instances[ins + loop * loopsize].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+				InsData* ptr;
+				ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+				glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+				glUseProgram(0);
+				for (unsigned int ins = 0; ins < insDatas_temp.size(); ins++) {
+					Instances[ins + loop * loopsize].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+				}
+				insDatas_temp.clear();
+				loop++;
 			}
-			insDatas_temp.clear();
-			loop++;
 		}
 	}
 	if (insDatas_temp.size() != 0) {
@@ -525,26 +421,15 @@ shaderProgram_plane->disable();
 		}
 	}
 	insDatas.clear();
-	insDatas_temp.clear();*/
+	insDatas_temp.clear();
 //////////////////////// 컴퓨트 셰이더로 계산 END
 
 
 shaderProgram->use(); // shader 호출
-	for (int i = 0; i < 1; i++)
-	{
-		std::string name;
-		name = "Light[" + std::to_string(i) + "].Position";
-		glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
-		name = "Light[" + std::to_string(i) + "].Intensity";
-		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
-	}
-	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-	glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-	glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
-	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 
-	glUniform1ui(shaderProgram->uniform("dqsize"), dualQuaternions.size());
+	glUniformMatrix4fv(shaderProgram->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+	glUniform1f(shaderProgram->uniform("u_timer"), animationTime);
+
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat2x4) * dualQuaternions.size() * size, dqsMatrices, GL_STATIC_DRAW);
@@ -564,23 +449,9 @@ shaderProgram->use(); // shader 호출
 	{
 		m_model->Draw(shaderProgram, size);
 	}
-
 shaderProgram->disable();
+
 delete[] modelMatrices;
-
-shaderProgram_gizmo->use();
-	glUniformMatrix4fv(shaderProgram_gizmo->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f) * projection * view));
-
-	if (m_line)
-	{
-		//m_line->draw();
-	}
-shaderProgram_gizmo->disable();
-
-
-
-
-
 }
 
 void MyGlWindow::resize(int w, int h) {

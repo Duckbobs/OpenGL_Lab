@@ -52,8 +52,10 @@ void main()
 
 	fLightIntensity = ambient + fLightIntensity;
 
-	vec4 _texColor = texture2D(ourTexture, TexCoord);
-    if(_texColor.a < 0.5)
-        discard;
-    FragColor = _texColor;
+	//vec4 _texColor = texture2D(ourTexture, TexCoord);
+    //if(_texColor.a < 0.5)
+    //    discard;
+    //FragColor = _texColor;
+
+    FragColor = vec4(0f, 0.5f+Position.x*0.5f, 0f, 1.0f);
 }

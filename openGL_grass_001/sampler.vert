@@ -2,8 +2,6 @@
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 vertexNormal;
 layout(location = 2) in vec2 aTexCoord;
-layout(location = 3) in ivec4 BoneIDs;
-layout(location = 4) in vec4 Weights;
 
 layout(std430, binding = 0) buffer ssbo1 // trans, rotate
 {
@@ -18,23 +16,22 @@ out vec3 Position;
 out vec3 Normal;
 out vec2 TexCoord;
 
-//uniform mat4 aInstanceMatrix;
-uniform mat4 viewProjection;
-//uniform int offset;
-//uniform int ins;
-uniform unsigned int dqsize;
-
+uniform mat4 u_viewProjection;
+uniform float u_timer;
 
 void main()
 {
 	mat4 model2  = aInstanceMatrix[gl_InstanceID];
-	//mat4 modelview = view * model2;
-	//Normal = mat3(transpose(inverse(DQmat))) * vertexNormal;
-
+	vec3 posMove = vec3(u_timer, 0, 0);
 	// out
-	Position = aPos.xyz;
+	Position = vec3(
+		aPos.x+0.2f*(aPos.y*aPos.y),
+		aPos.y,
+		aPos.z
+	);
+
     //Normal = vertexNormal;
 	Normal =  vertexNormal;
 	TexCoord = aTexCoord;
-	gl_Position = viewProjection * model2 * vec4(aPos.xyz, 1.0f);
+	gl_Position = u_viewProjection * model2 * vec4(Position, 1.0f);
 }

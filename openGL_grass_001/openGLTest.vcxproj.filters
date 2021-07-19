@@ -184,9 +184,6 @@
     <None Include="sampler.frag">
       <Filter>Shader</Filter>
     </None>
-    <None Include="sampler.vert">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="plane.frag">
       <Filter>Shader</Filter>
     </None>
@@ -200,6 +197,9 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="compute.comp">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="sampler.vert">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
