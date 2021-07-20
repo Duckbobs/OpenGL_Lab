@@ -2,6 +2,7 @@
 
 in vec3 Position;
 in vec3 Normal;
+in vec4 worldPosition;
 
 struct LightInfo {
   vec4 Position; // Light position in eye coords.
@@ -18,20 +19,16 @@ uniform MaterialInfo Material;
 
 out vec4 FragColor;
 
-in vec2 TexCoord;
-uniform sampler2D ourTexture;
-
 void main()
 {
 	vec4 pos = vec4(Position, 1);
-	vec3 fLightIntensity;
+	vec3 fLightIntensity = vec3(0.0f);
 	vec3 N, L, V, H;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 spec;
 	
-
-	for(int i=0; i<0; i++) {
+	for(int i=0; i<1; i++) {
 		N = Normal;
 		L = normalize(Light[i].Position - pos).xyz;
 		V = normalize(-pos).xyz;
@@ -41,21 +38,25 @@ void main()
 		diffuse = Light[i].Intensity * Material.Kd * max(dot(L, N),0);
 		spec = Light[i].Intensity * Material.Ks * pow(max(dot(H, N), 0.0), Material.Shiness);
 	
-		//float dist = length(Position - Light[i].Position.xyz);
-		//float attenuation = 1.0 / (1.0f + 0.0014f * dist + 0.000007f * (dist * dist));
-		//ambient  *= attenuation;
-		//diffuse  *= attenuation;
-		//spec *= attenuation;
+		float dist = length(worldPosition.xyz - Light[i].Position.xyz);
+		float attenuation = 1.0 / (1.0f + 0.0014f * dist + 0.000007f * (dist * dist));
+		ambient *= attenuation;
+		diffuse *= attenuation;
+		spec *= attenuation;
 
 		fLightIntensity += (diffuse + spec);
 	}
 
 	fLightIntensity = ambient + fLightIntensity;
+	fLightIntensity = vec3(0.5f);
+	
+    FragColor = vec4(vec3(0.3f, 0.5f+Position.z*0.5f, 0f) * clamp(0.9f, Position.y, 1.0f) * fLightIntensity, 1.0f);
 
 	//vec4 _texColor = texture2D(ourTexture, TexCoord);
     //if(_texColor.a < 0.5)
     //    discard;
     //FragColor = _texColor;
-
-    FragColor = vec4(0f, 0.5f+Position.x*0.5f, 0f, 1.0f);
 }
+
+//in vec2 TexCoord;
+//uniform sampler2D ourTexture;

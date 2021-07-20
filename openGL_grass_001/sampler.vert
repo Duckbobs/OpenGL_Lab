@@ -13,25 +13,26 @@ layout(std430, binding = 1) buffer ssbo2 // dqsMatrices
 };
 
 out vec3 Position;
+out vec4 worldPosition;
 out vec3 Normal;
 out vec2 TexCoord;
 
 uniform mat4 u_viewProjection;
-uniform float u_timer;
+uniform vec3 u_windVector;
 
 void main()
 {
 	mat4 model2  = aInstanceMatrix[gl_InstanceID];
-	vec3 posMove = vec3(u_timer, 0, 0);
 	// out
 	Position = vec3(
-		aPos.x+0.2f*(aPos.y*aPos.y),
+		aPos.x,
 		aPos.y,
-		aPos.z
+		aPos.z+0.2f*(aPos.y*aPos.y)
 	);
-
     //Normal = vertexNormal;
 	Normal =  vertexNormal;
 	TexCoord = aTexCoord;
-	gl_Position = u_viewProjection * model2 * vec4(Position, 1.0f);
+	worldPosition = model2 * vec4(Position * u_windVector, 1.0f);
+
+	gl_Position = u_viewProjection * worldPosition;
 }

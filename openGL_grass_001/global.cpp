@@ -8,7 +8,7 @@
 namespace global
 {
 	glm::vec3 lightPos[5] = {
-		glm::vec3(10000, 0, 0),
+		glm::vec3(0, 1000, 0),
 		glm::vec3(2, 10, 10),
 		glm::vec3(-2, -2, 10),
 		glm::vec3(1, -5, 10),

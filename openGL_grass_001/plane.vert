@@ -4,13 +4,14 @@ layout(location = 1) in vec3 vertexNormal;
 
 out vec3 Position;
 out vec3 Normal;
+out float Shadow;
 
-uniform mat4 viewProjection;
+uniform mat4 u_viewProjection;
 
 void main()
 {
 	// out
 	Position = aPos;
     Normal = vertexNormal;
-	gl_Position = viewProjection * vec4(aPos, 1.0f);
+	gl_Position = u_viewProjection * vec4(aPos, 1.0f);
 }

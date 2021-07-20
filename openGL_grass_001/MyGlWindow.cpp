@@ -136,8 +136,20 @@ void MyGlWindow::setupBuffer()
 {
 	shaderProgram = new ShaderProgram();
 	shaderProgram->initFromFiles("sampler.vert", "sampler.frag"); // 쉐이더 지정
+	for (int i = 0; i < 1; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		shaderProgram->addUniform(name);
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		shaderProgram->addUniform(name);
+	}
+	shaderProgram->addUniform("Material.Ka");
+	shaderProgram->addUniform("Material.Kd");
+	shaderProgram->addUniform("Material.Ks");
+	shaderProgram->addUniform("Material.Shiness");
 	shaderProgram->addUniform("u_viewProjection");
-	shaderProgram->addUniform("u_timer");
+	shaderProgram->addUniform("u_windVector");
 
 	shaderProgram_plane = new ShaderProgram();
 	shaderProgram_plane->initFromFiles("plane.vert", "plane.frag"); // 쉐이더 지정
@@ -153,7 +165,7 @@ void MyGlWindow::setupBuffer()
 	shaderProgram_plane->addUniform("Material.Kd");
 	shaderProgram_plane->addUniform("Material.Ks");
 	shaderProgram_plane->addUniform("Material.Shiness");
-	shaderProgram_plane->addUniform("viewProjection");
+	shaderProgram_plane->addUniform("u_viewProjection");
 
 
 	//Create the buffer the compute shader will write to
@@ -164,7 +176,7 @@ void MyGlWindow::setupBuffer()
 	char* directory;
 	directory = (char*)"assets/Grass.fbx";
 	m_model = new Model(directory);
-	m_plane = new Plane(5000.0f, 5000.0f, 20, 20);
+	m_plane = new Plane(1000.0f, 1000.0f, 20, 20);
 	m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
@@ -176,7 +188,7 @@ void MyGlWindow::initialize() {
 	// 생성
 	srand(clock()); // initialize random seed	
 	float radius = 200.0;
-	float offset = 100.0f;
+	float offset = 200.0f;
 	for (unsigned int i = lab_instance; i < max_amount; i++)
 	{
 		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
@@ -193,7 +205,7 @@ void MyGlWindow::initialize() {
 		float rotAngle2 = ((ran+90) % 360);
 
 
-		float scale = 20.0f + rand()%20;
+		float scale = 15.0f + rand()%20;
 
 		{
 			// 인스턴스 생성
@@ -242,6 +254,7 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 std::vector<InsData> insDatas;
 glm::vec3 Dest = glm::vec3(0, 0, 0);
+glm::vec3 u_windVector = glm::vec3(1.0f);
 glm::mat4 view;
 glm::mat4 projection;
 const glm::mat4 _mat = glm::mat4(1.0f);
@@ -252,7 +265,8 @@ void MyGlWindow::draw(float animationTime) {
 	// | Settings																	  |
 	// @------------------------------------------------------------------------------@
 #pragma region Settings
-	glClearColor(0.2, 0.2, 0.2, 1); // 백그라운드 색상 선택
+	//glClearColor(0.2, 0.2, 0.2, 1); // 백그라운드 색상 선택
+	glClearColor(154.0f / 255.0f, 203.0f / 255.0f, 255.0f / 255.0f, 1); // 백그라운드 색상 선택
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, width, height); //뷰포트(viewport) 설정
 	glEnable(GL_DEPTH_TEST);
@@ -267,7 +281,7 @@ void MyGlWindow::draw(float animationTime) {
 	glm::vec3 up = m_viewer->getUpVector();
 	view = lookAt(eye, look, up);
 	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
-	
+
 	glm::vec4 lightPos[] = {
 		glm::vec4(global::lightPos[0], 1),
 		glm::vec4(global::lightPos[1], 1),
@@ -293,14 +307,9 @@ void MyGlWindow::draw(float animationTime) {
 		global::lightPos[j++] = glm::vec4(x, 5.2, z, 1.0);
 	}
 
-	glm::vec3 Ka(0.5, 0.5, 0.5);
-	glm::vec3 Kd(0.1, 0.1, 0.1);
-	glm::vec3 Ks(0.01, 0.01, 0.01);
-	GLfloat shiness = 1.0f;
 
 
-
-shaderProgram_plane->use();
+	shaderProgram_plane->use();
 	for (int i = 0; i < 1; i++)
 	{
 		std::string name;
@@ -309,16 +318,23 @@ shaderProgram_plane->use();
 		name = "Light[" + std::to_string(i) + "].Intensity";
 		glUniform3fv(shaderProgram_plane->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
 	}
-	glUniform3fv(shaderProgram_plane->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-	glUniform3fv(shaderProgram_plane->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-	glUniform3fv(shaderProgram_plane->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-	glUniform1fv(shaderProgram_plane->uniform("Material.Shiness"), 1, &shiness);
-	glUniformMatrix4fv(shaderProgram_plane->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+	{
+		//glm::vec3 Ka(70.0f / 255.0f, 46.0f / 255.0f, 26.0f / 255.0f);
+		glm::vec3 Ka(0.7f);
+		glm::vec3 Kd(0.01f);
+		glm::vec3 Ks(0.01f);
+		GLfloat shiness = 0.1f;
+		glUniform3fv(shaderProgram_plane->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+		glUniform3fv(shaderProgram_plane->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(shaderProgram_plane->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+		glUniform1fv(shaderProgram_plane->uniform("Material.Shiness"), 1, &shiness);
+		glUniformMatrix4fv(shaderProgram_plane->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+	}
 	if (m_plane)
 	{
 		m_plane->draw();
 	}
-shaderProgram_plane->disable();
+	shaderProgram_plane->disable();
 
 
 
@@ -336,7 +352,7 @@ shaderProgram_plane->disable();
 		ImGui::SliderFloat("AnimationSpeed-3###SliderFloat-3", &animationSpeed_3, 0, 10);
 
 		ImGui::SliderInt("Index###SliderIntIndex", &lab_index, 1, max_index);
-		
+
 		ImGui::End();
 	}
 
@@ -348,10 +364,10 @@ shaderProgram_plane->disable();
 		ImGui::End();
 	}
 	{
-		ImGui::Begin("Window");
-		ImGui::InputFloat("x###InputFloatX", &Dest[0]);
-		ImGui::InputFloat("y###InputFloatY", &Dest[1]);
-		ImGui::InputFloat("z###InputFloatZ", &Dest[2]);
+		ImGui::Begin("u_windVector");
+		ImGui::SliderFloat("x###SliderFloatX", &u_windVector[0], 1, 5);
+		ImGui::SliderFloat("y###SliderFloatY", &u_windVector[1], 1, 5);
+		ImGui::SliderFloat("z###SliderFloatZ", &u_windVector[2], 1, 5);
 		ImGui::End();
 	}
 
@@ -365,11 +381,11 @@ shaderProgram_plane->disable();
 	{
 		// 물리 업데이트 ( Velocity )
 		Instances[ins].Update();
-		
+
 		if (ins >= lab_instance) {
 			// 실험 인스턴스 아닐경우 실행
 		}
-		else if(ins != 0) {
+		else if (ins != 0) {
 		}
 		// 모델 매트릭스 업데이트 ( 시간 가장 많이 소요 )
 		if (Instances[ins].updateMatrix()) {
@@ -377,7 +393,7 @@ shaderProgram_plane->disable();
 		}
 	}
 
-//////////////////////// 컴퓨트 셰이더로 계산 START
+	//////////////////////// 컴퓨트 셰이더로 계산 START
 	unsigned int loopsize = 500;
 	std::vector<InsData> insDatas_temp;
 	unsigned int loop = 0;
@@ -422,13 +438,34 @@ shaderProgram_plane->disable();
 	}
 	insDatas.clear();
 	insDatas_temp.clear();
-//////////////////////// 컴퓨트 셰이더로 계산 END
+	//////////////////////// 컴퓨트 셰이더로 계산 END
 
 
-shaderProgram->use(); // shader 호출
+	shaderProgram->use(); // shader 호출
 
-	glUniformMatrix4fv(shaderProgram->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
-	glUniform1f(shaderProgram->uniform("u_timer"), animationTime);
+	for (int i = 0; i < 1; i++)
+	{
+		std::string name;
+		name = "Light[" + std::to_string(i) + "].Position";
+		glUniform4fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightPos[i]));
+		name = "Light[" + std::to_string(i) + "].Intensity";
+		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
+	}
+	{
+		//glm::vec3 Ka(130.0f / 255.0f, 95.0f / 255.0f, 61.0f / 255.0f);
+		glm::vec3 Ka(0.5f);
+		glm::vec3 Kd(0.01f);
+		glm::vec3 Ks(0.01f);
+		GLfloat shiness = 0.1f;
+		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
+		glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+
+		glUniformMatrix4fv(shaderProgram->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
+		glUniform3fv(shaderProgram->uniform("u_windVector"), 1, glm::value_ptr(u_windVector));
+	}
 
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);
@@ -449,6 +486,7 @@ shaderProgram->use(); // shader 호출
 	{
 		m_model->Draw(shaderProgram, size);
 	}
+
 shaderProgram->disable();
 
 delete[] modelMatrices;
