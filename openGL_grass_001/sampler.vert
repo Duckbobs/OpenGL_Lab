@@ -32,7 +32,7 @@ void main()
     //Normal = vertexNormal;
 	Normal =  vertexNormal;
 	TexCoord = aTexCoord;
-	worldPosition = model2 * vec4(Position * u_windVector, 1.0f);
+	worldPosition = model2 * vec4(Position, 1.0f) + vec4(u_windVector*(aPos.y*aPos.y), 0);
 
 	gl_Position = u_viewProjection * worldPosition;
 }

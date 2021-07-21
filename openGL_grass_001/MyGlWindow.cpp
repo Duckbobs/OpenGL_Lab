@@ -464,7 +464,7 @@ void MyGlWindow::draw(float animationTime) {
 		glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 
 		glUniformMatrix4fv(shaderProgram->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
-		glUniform3fv(shaderProgram->uniform("u_windVector"), 1, glm::value_ptr(u_windVector));
+		glUniform3fv(shaderProgram->uniform("u_windVector"), 1, glm::value_ptr(u_windVector * sin(animationTime)));
 	}
 
 

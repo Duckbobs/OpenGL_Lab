@@ -47,7 +47,7 @@ void main()
 	}
 
 	fLightIntensity = ambient + fLightIntensity;
-	fLightIntensity = vec3(0.7f);
+	//fLightIntensity = vec3(0.7f);
 
     FragColor = vec4(fLightIntensity, 1);
 }
