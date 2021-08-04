@@ -62,15 +62,12 @@ private:
 	void setupBuffer();
 
 	std::vector<glm::mat4> Transforms;
-	std::vector<glm::fdualquat> dualQuaternions;
-	std::vector<glm::fdualquat> dualQuaternions2;
-	std::vector<glm::mat2x4> DQs;
 	glm::mat4* modelMatrices;
-	glm::mat2x4* dqsMatrices;
+	glm::vec3* windVectors;
 
 
-	GLuint ssboHandle_t = 0;
-	GLuint ssboHandle_ins = 1;
+	GLuint ssboHandle_model = 0;
+	GLuint ssboHandle_wind = 1;
 
 	GLuint ssboHandle_compute_test = 0;
 
