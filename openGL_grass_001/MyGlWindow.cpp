@@ -1,6 +1,6 @@
 #include "MyGlWindow.h"
 
-// Compute Shader //////////////////////////////////////////////////
+// Compute Shader /////////////////////////////////////////
 std::string readFile(const char* fileName)
 {
 	std::string fileContent;
@@ -17,7 +17,6 @@ std::string readFile(const char* fileName)
 	fileStream.close();
 	return fileContent;
 }
-
 void printProgramLog(GLuint program)
 {
 	GLint result = GL_FALSE;
@@ -31,7 +30,6 @@ void printProgramLog(GLuint program)
 		printf("programlog: %s\n", strInfoLog);
 	};
 }
-
 void printShaderLog(GLuint shader)
 {
 	GLint result = GL_FALSE;
@@ -45,7 +43,6 @@ void printShaderLog(GLuint shader)
 		printf("shaderlog: %s\n", strInfoLog);
 	};
 }
-
 GLuint loadComputeShader(const char* computeShaderFile)
 {
 
@@ -73,9 +70,9 @@ GLuint loadComputeShader(const char* computeShaderFile)
 
 	return program;
 }
-// Compute Shader //////////////////////////////////////////////////
+// Compute Shader ////////////////////////////////////////
 
-// Utils //////////////////////////////////////////////////
+// Utils /////////////////////////////////////////////////
 float rad2deg(double radian)
 {
 	return radian * 180 / 3.141592;
@@ -100,7 +97,6 @@ glm::vec3 deg2normal(float degree) {
 	velocity = glm::vec3(velocity.x, 0, velocity.y);
 	return glm::normalize(velocity);
 }
-
 float angle_difference(int a, int b) {
 	// 두 각도의 차이를 -180~180 사이의 값으로 반환
 	int d = std::abs(a - b) % 360; 
@@ -111,8 +107,9 @@ float angle_difference(int a, int b) {
 	r *= sign;
 	return r;
 }
-// Utils //////////////////////////////////////////////////
-// TODO
+// Utils /////////////////////////////////////////////////
+
+// TODO //////////////////////////////////////////////////
 /*
 	# 그림자
 
@@ -135,6 +132,7 @@ float angle_difference(int a, int b) {
 
 	# 머터리얼 샘플
 */
+// TODO //////////////////////////////////////////////////
 
 
 void MyGlWindow::setupBuffer()
@@ -182,6 +180,47 @@ void MyGlWindow::setupBuffer()
 	//m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
+
+// 청크 사이즈
+float chunkSize = 10.0f; // 가로 세로
+int chunkWidth = 150;
+std::vector<int> chunks[150][150]; // 100X100
+// 주어진 좌표에 해당하는 청크 반환하는 함수
+std::vector<int>* GetChunk(float x, float z)
+{
+	return &chunks[(int)glm::ceil(chunkWidth / 2 + x / chunkSize)][(int)glm::ceil(chunkWidth / 2 + z / chunkSize)];
+};
+// 주어진 좌표와 범위 내에 해당되는 인스턴스들의 ID 반환하는 함수
+std::vector<std::vector<int>*> rangedChunks; // 계산용 변수
+std::vector<std::vector<int>*>* GetInstancesOnChunks(float x, float z, float range) {
+	rangedChunks.clear();
+
+	int offset = chunkWidth / 2;
+
+	int xBegin = glm::clamp(offset + (int)glm::ceil((x - range) / chunkSize), 0, chunkWidth - 1);
+	int zBegin = glm::clamp(offset + (int)glm::ceil((z - range) / chunkSize), 0, chunkWidth - 1);
+
+	int xEnd = glm::clamp(offset + (int)glm::ceil((x + range) / chunkSize), 0, chunkWidth - 1);
+	int zEnd = glm::clamp(offset + (int)glm::ceil((z + range) / chunkSize), 0, chunkWidth - 1);
+
+	for (int i = xBegin; i <= xEnd; i++) {
+		for (int j = zBegin; j <= zEnd; j++) {
+			if(chunks[i][j].size() > 0)
+				rangedChunks.push_back(&(chunks[i][j]));
+		}
+	}
+	return &rangedChunks;
+};
+// 바람 구조체
+struct Wind {
+	glm::vec3 windPosition = glm::vec3(0);
+	glm::vec3 windVector = glm::vec3(0.2f, 0, 0);
+	float size = 150.0f;
+};
+std::vector<Wind> winds;
+Wind windObject;
+
+// MyGlWindow 초기 설정
 void MyGlWindow::initialize() {
 	MyGlWindow::setupBuffer();
 	// 생성
@@ -209,15 +248,9 @@ void MyGlWindow::initialize() {
 		instance.setRotation(glm::vec3(0, rotAngle1, 0));
 		instance.setScale(glm::vec3(scale));
 		instance.windVelocity = glm::vec3(0.0f);
-		/*instance.setPosition(glm::vec3(x, y, z));
-		instance.setRotation(glm::vec3(0, rotAngle1, 0));
-		instance.setScale(glm::vec3(scale));
-		instance.windVelocity = glm::vec3(0.0f);*/
-		/*instance.setPosition(glm::vec3(0, 0, i * 0.01f));
-		instance.setRotation(glm::vec3(0, 0, 0));
-		instance.setScale(glm::vec3(15.0f));
-		instance.windVelocity = glm::vec3(1.0f);*/
 		Instances.push_back(instance);
+
+		GetChunk(x, z)->push_back(i);
 	}
 
 	glGenBuffers(1, &ssboHandle_model);
@@ -225,12 +258,6 @@ void MyGlWindow::initialize() {
 
 	glGenBuffers(1, &ssboHandle_compute_test);
 }
-struct Wind {
-	glm::vec3 windPosition = glm::vec3(0);
-	glm::vec3 windVector = glm::vec3(0.2f, 0, 0);
-	float size = 150.0f;
-};
-std::vector<Wind> winds;
 MyGlWindow::MyGlWindow(int w, int h)
 {
 	width = w;
@@ -247,18 +274,10 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 	initialize();
 
-	{
-		Wind wind;
-		winds.push_back(wind);
-	}
-	{
-		Wind wind;
-		winds.push_back(wind);
-	}
-	{
-		Wind wind;
-		winds.push_back(wind);
-	}
+	// 바람 추가
+	{ Wind wind; winds.push_back(wind); }
+	//{ Wind wind; winds.push_back(wind); }
+	//{ Wind wind; winds.push_back(wind); }
 }
 
 glm::mat4 view;
@@ -325,10 +344,8 @@ void MyGlWindow::draw(float animationTime) {
 		ImGui::End();
 	}
 	{
-		ImGui::Begin("u_windPosition");
+		ImGui::Begin("Wind Position");
 		for (int i = 0; i < winds.size(); i++) {
-			//std::string str1 = "windPosition###SliderFloatX1";
-			//ImGui::SliderFloat3((str1 + std::to_string(i)).c_str(), &winds[i].windPosition.x, -500, 500);
 			std::string str;
 			str = "windVector.x";
 			ImGui::SliderFloat((str + std::to_string(i)).c_str(), &winds[i].windVector.x, -0.3f, 0.3f);
@@ -337,8 +354,15 @@ void MyGlWindow::draw(float animationTime) {
 			str = "size";
 			ImGui::SliderFloat((str + std::to_string(i)).c_str(), &winds[i].size, 0.0f, 400.0f);
 		}
-		//ImGui::SliderFloat("z###SliderFloatY", &u_windPosition[1], -500, 500);
-		//ImGui::SliderFloat("z###SliderFloatZ", &u_windPosition[2], -500, 500);
+		ImGui::End();
+	}
+	{
+		ImGui::Begin("Object Position");
+		std::string str;
+		str = "Object.x";
+		ImGui::SliderFloat((str).c_str(), &windObject.windPosition.x, -500.0f, 500.0f);
+		str = "Object.z";
+		ImGui::SliderFloat((str).c_str(), &windObject.windPosition.z, -500.0f, 500.0f);
 		ImGui::End();
 	}
 #pragma endregion
@@ -390,29 +414,73 @@ shaderProgram->use(); // shader 호출
 	glUniformMatrix4fv(shaderProgram->uniform("viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 	glUniformMatrix4fv(shaderProgram->uniform("u_viewProjection"), 1, GL_FALSE, glm::value_ptr(projection * view));
 
-
+	
 // 모델 Draw 시작
 	if (m_model)
 	{
+		// 바람 이동
 		for (int i = 0; i < winds.size(); i++) {
 			winds[i].windPosition += winds[i].windVector * 100.0f;
 			if (glm::abs(winds[i].windPosition.x) > 800.0f)
 				winds[i].windPosition.x = -glm::sign(winds[i].windPosition.x) * 500.0f;
 			if (glm::abs(winds[i].windPosition.z) > 800.0f)
 				winds[i].windPosition.z = -glm::sign(winds[i].windPosition.z) * 500.0f;
+		}
 
-			//if (Instances[0].getPosition() != u_windPosition) {
-				//Instances[0].setPosition(u_windPosition);
-			for (int now = 0; now < size; now++) {
-				//if (glm::length(Instances[now].getPosition()-u_windPosition) < 200.0f) {
-				float len = glm::length(Instances[now].getPosition() - winds[i].windPosition);
-				if (len < winds[i].size && len > -winds[i].size) {
-					Instances[now].windVelocity += winds[i].windVector;
+		// 청크 적용 방식
+		for (int i = 0; i < winds.size(); i++) {
+			// 영향권 내의 청크 구하기
+			std::vector<std::vector<int>*>* rangedChunks = GetInstancesOnChunks(winds[i].windPosition.x, winds[i].windPosition.z, winds[i].size);
+			// 청크 루프
+			for (int j = 0; j < rangedChunks->size(); j++) {
+				std::vector<int>* chunk = (*rangedChunks)[j];
+				// 흔들림 계산
+				float len = glm::length(Instances[(*chunk)[0]].getPosition() - winds[i].windPosition);
+				float vel = glm::max(0.0f, 1.0f - len / winds[i].size);
+				glm::vec3 windVel = winds[i].windVector * vel;
+				// 풀 개별 루프
+				for (int k = 0; k < chunk->size(); k++) {
+					int ins = (*chunk)[k];
+					if (ins < size) {
+						// 흔들림 적용
+						Instances[ins].windVelocity += windVel;
+					}
 				}
-				Instances[now].windVelocity = (Instances[now].windVelocity) * 0.99f;
 			}
 		}
-		//}
+		// 풀과의 거리 측정
+		for (int now = 0; now < size; now++) {
+			// 기존의 개별 계산 방식
+			/*for (int i = 0; i < winds.size(); i++) {
+				float len = glm::length(Instances[now].getPosition() - winds[i].windPosition);
+				float vel = glm::max(0.0f, 1.0f - len / winds[i].size);
+				if(vel != 0.0f)
+					Instances[now].windVelocity += winds[i].windVector * vel;
+			}*/
+			Instances[now].windVelocity = Instances[now].windVelocity * 0.95f;
+		}
+
+		// 물체 충돌
+		// 영향권 내의 청크 구하기
+		std::vector<std::vector<int>*>* rangedChunks = GetInstancesOnChunks(windObject.windPosition.x, windObject.windPosition.z, windObject.size);
+		// 청크 루프
+		for (int j = 0; j < rangedChunks->size(); j++) {
+			std::vector<int>* chunk = (*rangedChunks)[j];
+			// 흔들림 계산
+			glm::vec3 velocity = (Instances[(*chunk)[0]].getPosition() - windObject.windPosition);
+			float len = glm::length(velocity);
+			float vel = glm::max(0.0f, 1.0f - len / windObject.size);
+			glm::vec3 windVel = glm::normalize(velocity) * vel * 0.6f;
+			// 풀 개별 루프
+			for (int k = 0; k < chunk->size(); k++) {
+				int ins = (*chunk)[k];
+				if (ins < size) {
+					// 흔들림 적용
+					Instances[ins].windVelocity += windVel;
+				}
+			}
+		}
+
 		// 한번에 Draw할 개수
 		int drawSize = 500;
 		int now, nowSize = glm::min(drawSize, size);

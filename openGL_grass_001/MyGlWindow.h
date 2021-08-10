@@ -15,6 +15,7 @@
 #include "imGuIZMOquat.h"
 #include "Line.h"
 
+
 class MyGlWindow {
 public:
 	int max_index = 0;
