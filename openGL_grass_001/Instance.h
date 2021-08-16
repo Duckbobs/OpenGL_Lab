@@ -23,6 +23,7 @@ public:
 	glm::mat4 getInstanceMatrix();
 
 	glm::vec3 windVelocity;
+	glm::vec3 windVelocityRebound;
 public:
 	void setInstanceMatrix(glm::mat4 mat);
 	void setAnimationOffset(float offset);

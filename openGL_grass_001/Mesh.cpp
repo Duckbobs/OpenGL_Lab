@@ -95,8 +95,6 @@ void Mesh::Draw(ShaderProgram* shader, int num)
 
         shader->setFloat(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
-
-
     }
 // mesh ±×¸®±â
     glBindVertexArray(VAO);

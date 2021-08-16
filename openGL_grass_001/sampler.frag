@@ -19,8 +19,12 @@ uniform MaterialInfo Material;
 
 out vec4 FragColor;
 
+in vec2 TexCoord;
+uniform sampler2D ourTexture;
+
 void main()
 {
+	
 	vec4 pos = vec4(Position, 1);
 	vec3 fLightIntensity = vec3(0.0f);
 	vec3 N, L, V, H;
@@ -39,7 +43,7 @@ void main()
 		spec = Light[i].Intensity * Material.Ks * pow(max(dot(H, N), 0.0), Material.Shiness);
 	
 		float dist = length(worldPosition.xyz - Light[i].Position.xyz);
-		float attenuation = 1.0 / (1.0f + 0.0014f * dist + 0.000007f * (dist * dist));
+		float attenuation = 1.0 / (1.0f + 0.0014f * dist + 0.0000007f * (dist * dist));
 		ambient *= attenuation;
 		diffuse *= attenuation;
 		spec *= attenuation;
@@ -50,13 +54,16 @@ void main()
 	fLightIntensity = ambient + fLightIntensity;
 	//fLightIntensity = vec3(0.5f);
 	
-    FragColor = vec4(vec3(0.3f, 0.5f+Position.z*0.5f, 0f) * clamp(0.9f, Position.y, 1.0f) * fLightIntensity, 1.0f);
+	vec4 _texColor = texture2D(ourTexture, TexCoord);
+	//FragColor = vec4(vec3(0.3f, 0.5f+Position.z*0.5f, 0f) * clamp(0.0f, Position.y, 1.0f) * fLightIntensity, 1.0f);
+    FragColor = vec4(vec3(0,0.3,0)+vec3(_texColor) * clamp(0.0f, Position.y, 1.0f) * fLightIntensity, 1.0f);
+	
+	
+    //FragColor = vec4(vec3(0.3f, 0.5f+Position.z*0.5f, 0f) * clamp(0.9f, Position.y, 1.0f), 1.0f);
+
 
 	//vec4 _texColor = texture2D(ourTexture, TexCoord);
     //if(_texColor.a < 0.5)
     //    discard;
     //FragColor = _texColor;
 }
-
-//in vec2 TexCoord;
-//uniform sampler2D ourTexture;

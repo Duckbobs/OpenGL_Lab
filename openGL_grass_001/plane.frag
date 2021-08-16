@@ -20,6 +20,7 @@ out vec4 FragColor;
 
 void main()
 {
+	/*
 	vec4 pos = vec4(Position, 1);
 	vec3 fLightIntensity = vec3(0);
 	vec3 N, L, V, H;
@@ -50,4 +51,7 @@ void main()
 	//fLightIntensity = vec3(0.7f);
 
     FragColor = vec4(fLightIntensity, 1);
+	*/
+
+    FragColor = vec4(0.5, 0.7, 0.3, 1);
 }

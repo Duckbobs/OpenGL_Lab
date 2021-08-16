@@ -174,17 +174,17 @@ void MyGlWindow::setupBuffer()
 	computeShaderProgram_test = loadComputeShader("compute.comp"); // 쉐이더 지정
 
 	char* directory;
-	directory = (char*)"assets/Grass.fbx";
+	directory = (char*)"assets/grassTex2.fbx";
 	m_model = new Model(directory);
-	m_plane = new Plane(1000.0f, 1000.0f, 20, 20);
+	m_plane = new Plane(10000.0f, 10000.0f, 20, 20);
 	//m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
 
 // 청크 사이즈
 float chunkSize = 10.0f; // 가로 세로
-int chunkWidth = 150;
-std::vector<int> chunks[150][150]; // 100X100
+int chunkWidth = 1000;
+std::vector<int> chunks[1000][1000]; // 100X100 ( 늘려도 퍼포먼스에 큰 영향은 없음 )
 // 주어진 좌표에 해당하는 청크 반환하는 함수
 std::vector<int>* GetChunk(float x, float z)
 {
@@ -242,6 +242,9 @@ void MyGlWindow::initialize() {
 		float rotAngle1 = (ran % 360);
 		float scale = 15.0f +rand() % 20;
 
+		x = rand() % 1500 - 750;
+		z = rand() % 1500 - 750;
+
 		// 인스턴스 생성
 		Instance instance;
 		instance.setPosition(glm::vec3(x, y, z));
@@ -298,11 +301,16 @@ void MyGlWindow::draw(float animationTime) {
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// MSAA 안티앨리어싱
+	//glEnable(GL_MULTISAMPLE);
+
+
 	glm::vec3 eye = m_viewer->getViewPoint();
 	glm::vec3 look = m_viewer->getViewCenter();
 	glm::vec3 up = m_viewer->getUpVector();
 	view = lookAt(eye, look, up);
-	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 5000.0f);
+	projection = perspective(45.0f, 1.0f * width / height, 0.1f, 10000.0f);
 
 	glm::vec4 lightPos[] = {
 		glm::vec4(global::lightPos[0], 1),
@@ -482,7 +490,7 @@ shaderProgram->use(); // shader 호출
 		}
 
 		// 한번에 Draw할 개수
-		int drawSize = 500;
+		int drawSize = 1000;
 		int now, nowSize = glm::min(drawSize, size);
 		for (int offset = 0; offset < size; offset += nowSize) {
 			// 모델 매트릭스 계산 ( 컴퓨트 )

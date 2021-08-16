@@ -155,6 +155,9 @@ int main() {
 	glBeginQuery(GL_TIME_ELAPSED, _gpu_timer_query[_swap_id.pong()]);
 	glEndQuery(GL_TIME_ELAPSED);
 
+	// MSAA ¾ÈÆ¼¾Ù¸®¾î½Ì
+	//glfwWindowHint(GLFW_SAMPLES, 8);
+
 	float startFrame = glfwGetTime();
 
 	//double fps_previousTime = glfwGetTime();

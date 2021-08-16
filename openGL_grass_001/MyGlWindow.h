@@ -25,7 +25,7 @@ public:
 	float animationSpeed_1 = 0.8f;
 	float animationSpeed_2 = 0.6f;
 	float animationSpeed_3 = 0.5f;
-	int max_amount = 50000; // 최대 인스턴스 개수
+	int max_amount = 500000; // 최대 인스턴스 개수
 	int amount = 1000; // 인스턴스 개수
 
 	MyGlWindow(int w, int h);
