@@ -53,5 +53,5 @@ void main()
     FragColor = vec4(fLightIntensity, 1);
 	*/
 
-    FragColor = vec4(0.5, 0.7, 0.3, 1);
+    FragColor = vec4(0,0.3,0,1);//vec4(0.5, 0.7, 0.3, 1);
 }

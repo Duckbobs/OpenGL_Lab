@@ -22,7 +22,7 @@ public:
 	glm::vec3 getVelocity();
 	glm::mat4 getInstanceMatrix();
 
-	glm::vec3 windVelocity;
+	glm::vec3 windVelocity = glm::vec3(0);
 	glm::vec3 windVelocityRebound;
 public:
 	void setInstanceMatrix(glm::mat4 mat);

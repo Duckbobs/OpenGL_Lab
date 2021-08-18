@@ -28,7 +28,7 @@ void main()
 	// out
 	Position = vec3(
 		aPos.x,
-		aPos.y,
+		aPos.y-0.05f*powY,
 		aPos.z+0.2f*powY
 	);
     //Normal = vertexNormal;

@@ -39,6 +39,7 @@ public:
 	void initialize();
 
 	Viewer* m_viewer;
+	Model* m_model2;
 	Model* m_model;
 	Plane* m_plane;
 	Line* m_line;

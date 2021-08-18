@@ -176,7 +176,7 @@ void MyGlWindow::setupBuffer()
 	char* directory;
 	directory = (char*)"assets/grassTex2.fbx";
 	m_model = new Model(directory);
-	m_plane = new Plane(10000.0f, 10000.0f, 20, 20);
+	m_plane = new Plane(3000.0f, 3000.0f, 20, 20);
 	//m_line = new Line(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 }
 
@@ -227,6 +227,7 @@ void MyGlWindow::initialize() {
 	srand(clock()); // initialize random seed	
 	float radius = 200.0;
 	float offset = 200.0f;
+	int boxSize = 3000;
 	for (int i = 0; i < max_amount; i++)
 	{
 		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
@@ -242,8 +243,8 @@ void MyGlWindow::initialize() {
 		float rotAngle1 = (ran % 360);
 		float scale = 15.0f +rand() % 20;
 
-		x = rand() % 1500 - 750;
-		z = rand() % 1500 - 750;
+		x = rand() % boxSize - boxSize * 0.5f;
+		z = rand() % boxSize - boxSize * 0.5f;
 
 		// 인스턴스 생성
 		Instance instance;
@@ -279,12 +280,16 @@ MyGlWindow::MyGlWindow(int w, int h)
 
 	// 바람 추가
 	{ Wind wind; winds.push_back(wind); }
-	//{ Wind wind; winds.push_back(wind); }
+	{ Wind wind; winds.push_back(wind); }
 	//{ Wind wind; winds.push_back(wind); }
 }
 
 glm::mat4 view;
 glm::mat4 projection;
+glm::vec3 Ka(1.0f);
+glm::vec3 Kd(0.01f);
+glm::vec3 Ks(0.01f);
+GLfloat shiness = 0.1f;
 // 매 프레임 호출 됨
 void MyGlWindow::draw(float animationTime) {
 	// @------------------------------------------------------------------------------@
@@ -360,8 +365,21 @@ void MyGlWindow::draw(float animationTime) {
 			str = "windVector.z";
 			ImGui::SliderFloat((str + std::to_string(i)).c_str(), &winds[i].windVector.z, -0.3f, 0.3f);
 			str = "size";
-			ImGui::SliderFloat((str + std::to_string(i)).c_str(), &winds[i].size, 0.0f, 400.0f);
+			ImGui::SliderFloat((str + std::to_string(i)).c_str(), &winds[i].size, 0.0f, 1000.0f);
 		}
+		ImGui::End();
+	}
+	{
+		ImGui::Begin("Material");
+		std::string str;
+		str = "Ka";
+		ImGui::SliderFloat3((str).c_str(), &Ka.x, -10.0f, 10.0f);
+		str = "Kd";
+		ImGui::SliderFloat3((str).c_str(), &Kd.x, -10.0f, 10.0f);
+		str = "Ks";
+		ImGui::SliderFloat3((str).c_str(), &Ks.x, -10.0f, 10.0f);
+		str = "Shiness";
+		ImGui::SliderFloat((str).c_str(), &shiness, -10.0f, 10.0f);
 		ImGui::End();
 	}
 	{
@@ -387,10 +405,6 @@ shaderProgram_plane->use();
 			glUniform3fv(shaderProgram_plane->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
 		}
 		//glm::vec3 Ka(70.0f / 255.0f, 46.0f / 255.0f, 26.0f / 255.0f);
-		glm::vec3 Ka(0.7f);
-		glm::vec3 Kd(0.01f);
-		glm::vec3 Ks(0.01f);
-		GLfloat shiness = 0.1f;
 		glUniform3fv(shaderProgram_plane->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
 		glUniform3fv(shaderProgram_plane->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
 		glUniform3fv(shaderProgram_plane->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
@@ -410,10 +424,6 @@ shaderProgram->use(); // shader 호출
 		name = "Light[" + std::to_string(i) + "].Intensity";
 		glUniform3fv(shaderProgram->uniform(name), 1, glm::value_ptr(lightIntensity[i]));
 	}
-	glm::vec3 Ka(0.5f);
-	glm::vec3 Kd(0.01f);
-	glm::vec3 Ks(0.01f);
-	GLfloat shiness = 0.1f;
 	// 유니폼 변수 전달
 	glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
 	glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
@@ -445,13 +455,16 @@ shaderProgram->use(); // shader 호출
 				// 흔들림 계산
 				float len = glm::length(Instances[(*chunk)[0]].getPosition() - winds[i].windPosition);
 				float vel = glm::max(0.0f, 1.0f - len / winds[i].size);
-				glm::vec3 windVel = winds[i].windVector * vel;
-				// 풀 개별 루프
+				glm::vec3 windVel = winds[i].windVector * vel;// *((float)(rand() % 10) * 0.1f);
+				glm::vec3 windNormal = glm::normalize(windVel + glm::vec3(0.001f, 0, 0));
+				float maxDistance = glm::distance(windNormal, -windNormal);
+				//winds[i].windVector *= 0.999999f;
+				// 풀 개별 루프 ( 오래 걸림 )
 				for (int k = 0; k < chunk->size(); k++) {
 					int ins = (*chunk)[k];
 					if (ins < size) {
 						// 흔들림 적용
-						Instances[ins].windVelocity += windVel;
+						Instances[ins].windVelocity += windVel * (maxDistance - glm::distance(glm::normalize(Instances[ins].getRotation()), windNormal));
 					}
 				}
 			}
@@ -483,6 +496,7 @@ shaderProgram->use(); // shader 호출
 			for (int k = 0; k < chunk->size(); k++) {
 				int ins = (*chunk)[k];
 				if (ins < size) {
+					
 					// 흔들림 적용
 					Instances[ins].windVelocity += windVel;
 				}
@@ -490,7 +504,7 @@ shaderProgram->use(); // shader 호출
 		}
 
 		// 한번에 Draw할 개수
-		int drawSize = 1000;
+		int drawSize = 500; // 500이 가장 최적화 됨
 		int now, nowSize = glm::min(drawSize, size);
 		for (int offset = 0; offset < size; offset += nowSize) {
 			// 모델 매트릭스 계산 ( 컴퓨트 )
