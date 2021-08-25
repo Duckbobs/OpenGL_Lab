@@ -32,6 +32,7 @@ public:
 	void resize(int w, int h);
 	void setSize(int w, int h);
 	void draw(float animationTime);
+	void DrawChunk(std::vector<int> instanceIDs, int dispatch);
 	glm::mat4 lookAt(glm::vec3 campos, glm::vec3 look, glm::vec3 up);
 	glm::mat4 perspective(float fov, float aspect, float n, float f);
 

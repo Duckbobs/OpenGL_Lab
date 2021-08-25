@@ -181,10 +181,11 @@ void MyGlWindow::setupBuffer()
 }
 
 
+std::vector<int> drawInstances;
 // 청크 사이즈
-float chunkSize = 10.0f; // 가로 세로
-int chunkWidth = 1000;
-std::vector<int> chunks[1000][1000]; // 100X100 ( 늘려도 퍼포먼스에 큰 영향은 없음 )
+float chunkSize = 100.0f; // 가로 세로
+int chunkWidth = 100;
+std::vector<int> chunks[100][100]; // 100X100 ( 늘려도 퍼포먼스에 큰 영향은 없음 )
 // 주어진 좌표에 해당하는 청크 반환하는 함수
 std::vector<int>* GetChunk(float x, float z)
 {
@@ -210,6 +211,11 @@ std::vector<std::vector<int>*>* GetInstancesOnChunks(float x, float z, float ran
 		}
 	}
 	return &rangedChunks;
+};
+float GetChunkDistance(float gx, float gy, glm::vec3 point) {
+	float offset = chunkWidth * chunkSize / 2;
+	glm::vec3 chunkPos(gx * chunkSize - offset, 0, gy * chunkSize - offset);
+	return glm::distance(chunkPos, point);
 };
 // 바람 구조체
 struct Wind {
@@ -391,6 +397,13 @@ void MyGlWindow::draw(float animationTime) {
 		ImGui::SliderFloat((str).c_str(), &windObject.windPosition.z, -500.0f, 500.0f);
 		ImGui::End();
 	}
+	{
+		ImGui::Begin("Camera");
+		std::string str;
+		str = "Eye";
+		ImGui::SliderFloat3((str).c_str(), &eye.x, -1000.0f, 1000.0f);
+		ImGui::End();
+	}
 #pragma endregion
 
 shaderProgram_plane->use();
@@ -444,7 +457,6 @@ shaderProgram->use(); // shader 호출
 			if (glm::abs(winds[i].windPosition.z) > 800.0f)
 				winds[i].windPosition.z = -glm::sign(winds[i].windPosition.z) * 500.0f;
 		}
-
 		// 청크 적용 방식
 		for (int i = 0; i < winds.size(); i++) {
 			// 영향권 내의 청크 구하기
@@ -480,7 +492,6 @@ shaderProgram->use(); // shader 호출
 			}*/
 			Instances[now].windVelocity = Instances[now].windVelocity * 0.95f;
 		}
-
 		// 물체 충돌
 		// 영향권 내의 청크 구하기
 		std::vector<std::vector<int>*>* rangedChunks = GetInstancesOnChunks(windObject.windPosition.x, windObject.windPosition.z, windObject.size);
@@ -496,25 +507,57 @@ shaderProgram->use(); // shader 호출
 			for (int k = 0; k < chunk->size(); k++) {
 				int ins = (*chunk)[k];
 				if (ins < size) {
-					
+
 					// 흔들림 적용
 					Instances[ins].windVelocity += windVel;
 				}
 			}
 		}
 
+
+		// Draw 할 청크
+		drawInstances.clear();
+		for (int x = 0; x < chunkWidth; x++) {
+			for (int y = 0; y < chunkWidth; y++) {
+				int dist = (int)GetChunkDistance(x, y, eye);
+				int count = glm::min(50000 / dist, (int)(chunks[x][y]).size());
+				if (dist < 1000) {
+					count = (int)(chunks[x][y]).size();
+				} else if (dist < 2000) {
+					count = (int)(chunks[x][y]).size() / 2;
+				}
+				else if (dist < 3000) {
+					count = (int)(chunks[x][y]).size() / 5;
+				}
+				else if (dist < 4000) {
+					count = (int)(chunks[x][y]).size() / 10;
+				}
+				else if (dist < 5000) {
+					count = (int)(chunks[x][y]).size() / 15;
+				}
+				else {
+					count = (int)(chunks[x][y]).size() / 20;
+				}
+				count = glm::min(count, (int)(chunks[x][y]).size());
+				for (int i = 0; i < count; i++) {
+					if ((chunks[x][y])[i] < size)
+						drawInstances.push_back((chunks[x][y])[i]);
+				}
+			}
+		}
 		// 한번에 Draw할 개수
+		int drawInstances_size = (int)drawInstances.size();
 		int drawSize = 500; // 500이 가장 최적화 됨
-		int now, nowSize = glm::min(drawSize, size);
-		for (int offset = 0; offset < size; offset += nowSize) {
+		int now, nowSize = glm::min(drawSize, drawInstances_size);
+		for (int offset = 0; offset < drawInstances_size;) {
 			// 모델 매트릭스 계산 ( 컴퓨트 )
 			std::vector<int> computeIDs;
 			std::vector<InsData> insDatas_temp;
 			for (int start = 0; start < nowSize; start++) {
 				now = offset + start;
-				if (Instances[now].updateMatrix()) {
-					insDatas_temp.push_back(Instances[now].getData());
-					computeIDs.push_back(now);
+				if (Instances[drawInstances[now]].updateMatrix()) {
+					insDatas_temp.push_back(Instances[drawInstances[now]].getData());
+					computeIDs.push_back(drawInstances[now]);
 				}
 			}
 			if (computeIDs.size() != 0) {
@@ -530,7 +573,6 @@ shaderProgram->use(); // shader 호출
 				// 결과값 입력
 				for (int ins = 0; ins < computeIDs.size(); ins++) {
 					Instances[computeIDs[ins]].setInstanceMatrix(ptr[ins].aInstanceMatrix);
-					//std::cout << computeIDs[ins] << std::endl;
 				}
 			}
 
@@ -541,9 +583,9 @@ shaderProgram->use(); // shader 호출
 			for (int start = 0; start < nowSize; start++) {
 				now = offset + start;
 				// 모델 매트릭스 입력
-				modelMatrices[start] = Instances[now].getInstanceMatrix();
+				modelMatrices[start] = Instances[drawInstances[now]].getInstanceMatrix();
 				// 바람 정보 입력
-				windVectors[start] = Instances[now].windVelocity;
+				windVectors[start] = Instances[drawInstances[now]].windVelocity;
 			}
 			// 모델 매트릭스 ssbo 전달
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_model);
@@ -562,12 +604,96 @@ shaderProgram->use(); // shader 호출
 			// 메모리 반환
 			delete[] modelMatrices;
 			delete[] windVectors;
-			nowSize = glm::min(drawSize, size - offset);
+			offset += nowSize;
+			nowSize = glm::min(drawSize, drawInstances_size - offset);
 		}
 	}
 // 모델 Draw 끝
 shaderProgram->disable();
 }
+
+
+
+
+
+void MyGlWindow::DrawChunk(std::vector<int> instanceIDs, int dispatch) {
+	// 모델 매트릭스 계산 ( 컴퓨트 )
+	std::vector<int> computeIDs;
+	std::vector<InsData> insDatas_temp;
+	for (int i = 0; i < instanceIDs.size(); i++) {
+		if (Instances[i].updateMatrix()) {
+			insDatas_temp.push_back(Instances[i].getData());
+			computeIDs.push_back(i);
+		}
+	}
+	if (computeIDs.size() != 0) {
+		// 컴퓨트 셰이더 전달
+		glUseProgram(computeShaderProgram_test);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_compute_test);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InsData) * insDatas_temp.size(), insDatas_temp.data(), GL_DYNAMIC_DRAW);
+		glDispatchCompute(dispatch + 1, 1, 1);
+		InsData* ptr;
+		ptr = (InsData*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUseProgram(0);
+		// 결과값 입력
+		for (int ins = 0; ins < computeIDs.size(); ins++) {
+			Instances[computeIDs[ins]].setInstanceMatrix(ptr[ins].aInstanceMatrix);
+			//std::cout << computeIDs[ins] << std::endl;
+		}
+	}
+
+	// 메모리 할당
+	modelMatrices = new glm::mat4[instanceIDs.size()];
+	windVectors = new glm::vec3[instanceIDs.size()];
+	// ssbo 입력
+	for (int i = 0; i < instanceIDs.size(); i++) {
+		// 모델 매트릭스 입력
+		modelMatrices[i] = Instances[instanceIDs[i]].getInstanceMatrix();
+		// 바람 정보 입력
+		windVectors[i] = Instances[instanceIDs[i]].windVelocity;
+	}
+	// 모델 매트릭스 ssbo 전달
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_model);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * instanceIDs.size(), modelMatrices, GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboHandle_model);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	// 바람 정보 ssbo 전달
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_wind);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec3) * instanceIDs.size(), windVectors, GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssboHandle_wind);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	// 드로우
+	m_model->Draw(shaderProgram, instanceIDs.size());
+
+	// 메모리 반환
+	delete[] modelMatrices;
+	delete[] windVectors;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void MyGlWindow::resize(int w, int h) {
 	width = w;
